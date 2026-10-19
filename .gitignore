@@ -1,0 +1,14 @@
+# Reproducible document rendering and translation intermediates
+/tmp/
+/.document_work/render/
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local credentials
+.env
+.env.*
+!.env.example

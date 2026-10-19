@@ -1,0 +1,2232 @@
+PAGE 1
+MorphQuad: Morphable Quadrotor for Superhuman
+Maneuverability, Manipulation, and Resiliency
+Jos´e D´ıaz Pe´on Gonz´alez Pacheco,⋆ Jiawei Xu,⋆ Andrew Zhao,⋆ Hongyu Zhou,†
+Atharva Navsalkar,† Andrew Scheffer,† Amrith Malli Reddi,† Sashreek Shankar,†
+Yuqing (Ivan) Bao,† Vasileios Tzoumas
+Aerospace Engineering, University of Michigan.
+⋆Equal first-author contribution †Equal second-author contribution
+Infrastructure maintenance, contact-based inspection, and emergency response
+can benefit from aerial vehicles that act as a flying human hand with extreme
+maneuverability, manipulation, and resiliency (MMR):maneuverabilityto fly in
+arbitrary orientations to reach remote and tight locations;manipulationto point
+sensors, turn valves, and press tools at arbitrary orientations;resiliencyto main-
+tain accurate motion and force control despite disturbances from arbitrary direc-
+tions, such as wind, ground effects, and friction. Realizing MMR on aerial vehi-
+cles requires not only omnidirectional flight; it also requires (I) vectoring of max-
+imum thrust in any direction, to maximize capacity for contact-force application
+and disturbance rejection, (II) global stability, to enable control over any orienta-
+tion/position, and (III) compact, standard designs that build upon platforms such
+as quadrotors to inherit technological know-how. No current aerial vehicle simul-
+taneously enables I–III, due to structural and control limitations that constrain
+actuation. We present MorphQuad: a morphable quadrotor that enjoys MMR.
+Key to our approach is a hardware and control co-design: on hardware, we inde-
+1
+arXiv:2607.02764v1  [cs.RO]  2 Jul 2026
+PAGE 2
+pendently articulate each of the four rotor systems via two-axis gimbals; on con-
+trol, we introduce globally-stable control, and energy-optimal thrust allocation
+that permits inter-rotor thrust cancellations only to avoid downwash interfer-
+ence and gimbal lock. With fully-onboard autonomy, MorphQuad demonstrates
+multi-revolution rotation while translating or hovering, for pipe inspection and
+target tracking (maneuverability); valve turning, perching, and object pressing
+and pushing with human-level strengths (manipulation); and wind rejection from
+any direction, even directed to a single rotor, and push-pull recovery (resiliency).
+Summary
+An autonomous morphable quadrotor that flies, perches, pulls, and turns valves in any direction
+under high winds and wakes.
+Introduction
+Infrastructure maintenance (1, 2), contact-based inspection (3, 4), and emergency response (5–7)
+can benefit from aerial vehicles that act as a flying human hand with extreme maneuverability, ma-
+nipulation, and resiliency (MMR):(a) Maneuverability: to reach remote locations (8, 9), traverse
+tight spaces (10–12), and inspect complex infrastructure, such as around and in-between pipes and
+ducts (13,14) from any direction.(b) Manipulation: to push obstacles away (15), turn valves (16),
+and press sensors against infrastructure to assess structural integrity (4).(c) Resiliency: to move
+and apply forces with accuracy despite challenging disturbances, such as wind (17, 18), wall, ceil-
+ing, and ground effects (19, 20), and counter-acting contact forces,e.g.,friction (21, 22).
+2
+PAGE 3
+Pushing
+(B) Manipulation
+Approaching
+Pushing nailPerching
+Turning valves
+Approaching Applying torque
+Hand-guided reorientation
+Nominal hover
+Leaning hover
+Morphing 
+transition
+Nominal hover
+Nominal hover Inverse hover
+Vertical hover
+Inverse leaning
+Morphing
+transitionMorphing
+transition
+Continual 360 rotation during translation
+(A) Maneuverability
+Wind 
+Physical displacements
+Pushing Picking
+(C) Resiliency
+Figure 1:We present MorphQuad, a morphable quadrotor with extreme maneuverability, manip-
+ulation, and resiliency (MMR). In hardware experiments with fully-onboard autonomy (no mo-
+tion capture), MorphQuad demonstrates(A)maneuverability, to perform multi-revolution rotation
+while translating around a pipe or pointing at arbitrary directions while hovering;(B)manipulation,
+for pushing heavy objects, perching on walls and pressing nails, and turning valves at arbitrary ori-
+entations; and(C)resiliency, for disturbance rejection under physical pushes and pulls, sustained
+tether forces, and strong wind from arbitrary directions.
+3
+PAGE 4
+Realizing MMR on aerial vehicles requires more than omnidirectional flight,i.e., flying in
+arbitrary directions at any attitude; it also demands (I) vectoring of maximum thrust in any di-
+rection, (II) almost-everywhere/global stability, and (III) compact and standard designs.Enabler
+I: Vectoring of maximum thrust in any direction.Generating maximum thrust in any desired
+direction —up to the capacity of the vehicle’s rotors and independently of vehicle orientation—
+delivers maximum acceleration, contact force application, and disturbance rejection along any di-
+rection.Enabler II: Almost-everywhere/global stability.Maintaining stability during motion
+from any current position and orientation to any other guarantees reliable maneuverability and ma-
+nipulation amid disturbances.Enabler III: Compact and standard designs.Building on compact
+and standard platforms, such as quadrotors, the vehicle can access confined environments, inherit
+technological maturity, and maintain a low-complexity structure.
+No current aerial vehicle enjoys simultaneously Enablers I–III: structural and control limita-
+tions either constrain the range of actuation, preventing Enablers I and/or II (1, 16, 23–37), or
+require non-compact designs of vehicle-of-vehicles (38–40) or hexarotor/octarotor designs (2, 3,
+41, 42), preventing Enabler III. We next review the state of the art in more detail, from fixed-tilt to
+variable-tilt designs, and summarize the most relevant platforms in Table 1.
+4
+PAGE 5
+Table 1: Comparison of the most relevant omnidirectional multirotors: no current multirotor simultaneously achieves Enablers I–III.
+Specifically, their structural and control limitations either constrain the range of actuation, thus preventing Enablers I and/or II, or
+impose complex vehicle-of-vehicles and non-compact hexarotor and octarotor designs, thus preventing Enabler III.
+Enablers of maneuverability, manipulation, and resiliency Hardware validation
+Vectoring of maximum
+thrust in any direction
+Almost-everywhere
+stable control
+Compact and
+standard design
+Onboard sensing
+and control
+Manipulation on top of
+omnidirectional flight
+Disturbance
+rejection
+Fixed-tilt
+Yang, 2018 (1, 16, 24)✗✓✗ ✗✓ ✓
+Lee, 2024 (27)✗✓✗ ✗ ✗ ✗
+Veenstra, 2026 (28)✗ ✗ ✗ ✗✓✗
+Variable-tilt
+Ryll, 2014 (31, 32)✗ ✗✓✗ ✗ ✗
+Kamel, 2018 (34)✗ ✗ ✗ ✗✓✗
+Ji, 2019 (35)✗✓✗ ✗ ✗ ✗
+Bodie, 2020 (3, 41, 42)✗✓✗ ✗✓ ✓
+Su, 2021 (38)✓✗ ✗ ✗ ✗ ✗
+Zhao, 2023 (39, 40)✓✗ ✗ ✗✓✗
+SkyGauge, 2023 (36)∗ ✗ ✗✓ ✓ ✓ ✓
+Li, 2025 (33)✗ ✗✓✗ ✗ ✗
+Lee, 2025 (2)✗✓✗ ✗✓ ✓
+Aerix, 2025 (43, 44)∗ ✗ ✗unknown✓✗✓
+Ours
+MorphEUS, 2025 (45)✓ ✓ ✓✗ ✗ ✗
+MorphQuad (this paper)✓ ✓ ✓ ✓ ✓ ✓
+∗No peer-reviewed publications; assessed from public patent information.
+5
+PAGE 6
+Fixed-tilt multirotors.Fixed-tilt multirotors lack Enabler I and cannot simultaneously realize
+Enablers II and III. Fixed-tilt multirotors lack rotor articulation: each rotor generates thrust in a
+static direction with respect to the vehicle body.(a) Fixed-tilt multirotors with all rotors point-
+ing in the same direction, such as standard quadrotors, achieve Enabler III but not Enablers I and
+II. The rotors collectively generate maximum thrust only in a single direction (46–50), falling short
+of Enabler I. This also causes the inability to translate or apply force in lateral directions without
+rotating, falling short of Enabler II.(b) Fixed-tilt multirotors with rotors pointing in different
+directionsachieve Enabler II but not Enablers I and III. Omnidirectionality on this configuration
+requires a large number of rotors oriented in fixed, different directions on the vehicle body (51–54):
+seven or more unidirectional rotors (23, 25, 26), or six or more bidirectional rotors (1, 24, 27, 28),
+all in optimized placement. Such designs impose complex mechatronic hardware and boxy struc-
+tures (23,25,26), falling short of Enabler III. In addition, they always have rotors generating coun-
+teracting thrust during operation, falling short of Enabler I.
+Variable-tilt multirotors.Existing variable-tilt multirotors lack Enabler I due to the limited
+ranges of rotor articulation (2, 3, 30–34, 36, 41, 42, 55–58) or thrust allocation constraints imposed
+by the vehicle design (35); those that fulfill Enabler I cannot achieve Enabler III because of their
+structural bulkiness (38–40).(a) Variable-tilt multirotors with limited rotor articulationsac-
+rifice Enabler I and cannot simultaneously achieve Enablers II and III. The limited articulation, if
+not mechanically bounding the maximum tilting angle (36,37,56), causes inter-rotor thrust cancel-
+lation whenever the vehicle operates away from nominal hover, falling short of Enabler I. Designs
+in this category realize the limited articulation through either synchronized or independent single-
+axis rotor articulation. Synchronized rotor articulation (30, 36, 55–58) falls short of Enabler II
+due to control singularity (30, 55) and mechanical constraints (36, 56). Independent single-axis
+rotor articulation either empowers a quadrotor structure to achieve Enabler III but sacrifices En-
+abler II (31–33) due to control singularities, or empowers a many-rotor vehicle to achieve Enabler
+II (2, 3, 34, 41, 42) but sacrifices Enabler III, requiring complex mechatronic components that sup-
+6
+PAGE 7
+port six or more rotors in a non-compact structure.(b) Variable-tilt multirotors with omnidi-
+rectional rotor articulationfall short on at least one among Enablers I–III. Vehicle-of-vehicle
+designs, through chaining (39, 40) or gimbaling (38) smaller multirotor modules, achieve neither
+Enabler III, due to complex interconnection structures and mechatronics, nor Enabler II, due to the
+absence of stability proofs of the proposed controllers. Single-vehicle designs include the tilting
+quadcopter (35) and Aerix quadrotor (43): (35) presents a conceptual quadrotor with dual-axis
+rotor articulation, without specifying how this articulation is achieved via appropriate structural
+and hardware components. Each rotor of the tilting quadcopter is equipped with a single propeller
+that induces an aerodynamic drag torque when generating thrust, and a gyroscopic torque when
+articulating the spinning rotors; as the controller compensates these torques even during hover, the
+rotors spend thrust on the torque compensations, falling short of Enabler I. (43) is a hardware
+patent that presents a quadrotor structural design that enables omnidirectional rotor-tilting, but its
+real-world hardware implementation is not public; thus, its complexity is unknown. Further, nei-
+ther control nor thrust allocation algorithms have been published or disclosed for this vehicle, nor
+are known to exist (44), obstructing Enablers I and II. We previously presented MorphEUS (45),
+a morphable quadrotor design that promises Enablers I–III through co-designed control and thrust
+allocation on two-axis articulated rotors; its hardware implementation, real-world deployment, and
+resiliency under disturbances remained open.
+7
+PAGE 8
+Movie 1: Overview movie of MorphQuad: We present a morphable quadrotor capable of om-
+nidirectional free and in-contact flight —to transform infrastructure maintenance, contact-based
+inspection, and emergency response. The quadrotor moves like a flying human hand: it can perch,
+push, and pull in any direction; turn inclined valves; and perform helical multi-revolution ma-
+neuvers to inspect pipes. We demonstrate fully autonomous operation, with resilience to wind,
+rotor-wake, and impulsive push and pull disturbances.
+8
+PAGE 9
+Contributions
+We present MorphQuad, a morphable multirotor that embodies Enablers I–III in a quadrotor struc-
+ture, with fully-onboard localization and computation for (a) maneuverability, (b) manipulation,
+and (c) resiliency (Movie 1).(a) Maneuverability:MorphQuad performs helical multi-revolution
+motion while pointing the camera at a pipe—unprecedented on variable-tilt multirotors— for in-
+spection, and pointing while hovering for hand tracking.(b) Manipulation:MorphQuad can
+apply torque of4.92Nm and lateral force of4.55kg, comparable to a human wrist’s strength (59)
+and sufficient for industrial applications (60), on top of hovering. We demonstrate these in valve
+turning, wall perching and nail pressing, and whiteboard pushing.(c) Resiliency:MorphQuad
+maintains accurate and stable hover at any attitudes under wind disturbances —even when the
+wind is directed at a single rotor system. 1 Under impulsive and sustained physical displacements,
+MorphQuad maintains an RMSE similar to free flight on the orthogonal axes to the disturbances.
+Key to our approach is a co-design of hardware and control: on hardware, we independently
+articulate each of the four rotor systems via two-axis gimbals for omnidirectional thrust vectoring;
+on control, we introduce a thrust allocation that is energy-optimal, achieving maximum thrust
+vectoring in any direction, and a generalized geometric controller that is almost-globally stable,
+which we augment with disturbance adaptation; the thrust allocation allows inter-rotor cancellation
+only to reduce downwash interference and avoid mechanical gimbal lock.
+1We apply an airflow from a wind blower to the vehicle (30m/s measured at the vehicle), producing non-uniform
+force and torque disturbances at a small area on the vehicle; it provides a challenge on the vehicle stability, comparable
+to the10–20m/s uniform freestream generated by a wind tunnel (18) or fan array (61).
+9
+PAGE 10
+RC Commands:
+Manual override
+and EMS
+(B) Autonomy
+x (m)
+y (m) z (m)
+Trajectory planner
+Thrust allocation
+Extended Kalman Filter
+VIO localization
+Geometric
+control
+Disturbance
+compensation
+Augmented geometric control
+State
+feedback
+800 Hz
+Reference
+state
+100 Hz
+Odometry
+20 Hz
+Target
+wrench
+800 Hz
+Dynamics
+Actuator
+command
+800 Hz
+Sensor
+readings
+8000 Hz
+(A) Hardware
+Command
+NVidia Jetson Orin Nano
+Intel RealSense
+Odometry
+Pixhawk 6X
+IMU Actuators
+Servos
+Rotors
+Autopilot FMUv6
+Flight computer
+ICM45686
+ICP20100
+BMP388
+Figure 2: (A)Major hardware components on MorphQuad that enable omnidirectional flight.(B)
+The autonomy pipeline of MorphQuad, color-coded by its corresponding hardware in (A).
+10
+PAGE 11
+Results
+First, we discuss our contributions on hardware and autonomy that embody Enablers I–III, and
+then showcase the hardware experiment setup and evaluation results.
+Hardware and autonomy
+We present MorphQuad’s (A) hardware and (B) autonomy pipeline, as shown in Figure 2, co-
+designed to realize Enablers I–III. Replacing the regular quadrotor’s fixed rotors with four inde-
+pendently articulated rotor systems allows MorphQuad to continuously vector maximum thrust in
+any direction (Enabler I). We deploy a provably-stable generalized geometric controller, paired
+with an energy-optimal thrust allocation, to guarantee almost-everywhere stability for MorphQuad
+(Enabler II). We integrate an off-the-shelf vision-based navigation architecture on a compact and
+standard quadrotor structure with fully-onboard autonomy (Enabler III).
+We first present the independently articulated rotor system that enables continuous omnidirec-
+tional thrust vectoring, and then the autonomy pipeline that enables trajectory generation, local-
+ization, and motion control for the fully-onboard experiments. Additional details on mechatronic
+component selection and control synthesis are given in Materials and Methods.
+Independently articulated rotor systems
+We enable the continuous omnidirectional thrust vectoring on MorphQuad by mounting each rotor
+system on a gimbal mechanism (Figure 3(A)) that is actuated across two perpendicular articulation
+axes. The gimbals can continuously vector the rotor thrusts into any desired direction inside a
+sphere. Each rotor system, in particular, is composed of two counter-rotating motors with the same
+speed, and appropriate propellers that together generate thrust in the same direction. This design
+choice eliminates gyroscopic precession of the rotating motor masses and the aerodynamic drag
+effects from the propellers. Next, we elaborate on the gimbal design and rotor system.
+11
+PAGE 12
+(D)
+Motor ESC cables
+(B)
+Inner servo
+Outer servo
+transmission
+Outer servo
+rotation axis
+Dual motor
+Outer servo
+(A)
+Inner servo
+rotation axis
+(C)
+0
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+Time (s)
+0
+20
+40
+60
+80
+Position (°)
+0
+ 2
+ 4
+ 6
+Time (s)
+182 ms
+Rise time
+261 ms
+Settling (2%)
+< 1%
+Overshoot
+119 ms
+Rise time
+237 ms
+Settling (2%)
+0%
+Overshoot
+Present position
+Goal position
+XC330-M288 XL330-M288
+Figure 3:Each rotor system pairs two stacked motors with a two-axis gimbal, pointing the thrust
+in any direction while both axes spin continuously.(A)The inner servo rotates the motor pair
+inside the duct; the outer servo rotates the ring through a belt-pulley drive.(B)The belt-pulley
+drive moves the outer servo off the rotation axis, leaving the center open for wires.(C)Two angles
+describe the thrust direction:α i, the rotation of the duct, andβ i, the rotation of the motor pair
+inside the duct.(D)Servo response to a90 ◦ step command.
+12
+PAGE 13
+Gimbals.The gimbal mechanism enables each rotor system to rotate up to±1080 ◦ along two
+perpendicular axes (Figure 3(A)), directing the rotor thrust on the sphere through three full revo-
+lutions from neutral (Figure 3(C)). This range is possible because we route the power and signal
+wires through an opening at the center of the outer servo rotation axis, and enable the resulting
+twist through slack along the wire length (Figure 3(B)). A belt-pulley transmission offsets the
+outer servo from the rotation axis, leaving the center clear for the pass-through; the inner servo sits
+inline with its axis and requires no such offset.2
+Rotor systems.At the intersection of the two rotation axes of each gimbal, we mount a coaxial
+motor pair to provide thrust. Each propeller rotates in the opposite direction at equal speeds (Fig-
+ure 3(A)). The counter-rotation benefits the thrust vectoring and controller design by eliminating
+two adverse effects that arise from a singular rotating propeller: (i) gyroscopic effect: a spinning
+rotor produces a precession torque that resists gimbal motion; and (ii) aerodynamic drag: a singu-
+lar rotating propeller receives a reaction torque from the air along the spin axis that is inseparable
+from thrust generation. Without counter-rotation, the servo motors would need to overcome the
+dynamic load from (i) during thrust vectoring, and each rotor’s thrust would couple with a torque
+from (ii). Furthermore, the aerodynamic drag would complicate MorphQuad’s control and thrust
+allocation design, in a similar way to (35), preventing Enabler I. The dual-motor solution elimi-
+nates both the gyroscopic effect and the aerodynamic drag, leading to rapid and consistent servo
+motion (Figure 3(D)) and low-complexity thrust allocation.
+Autonomy pipeline
+We introduce a fully-onboard autonomy pipeline for MorphQuad, outlined in Figure 2(B). Co-
+designed with the hardware, the autonomy pipeline enables continuous omnidirectional vectoring
+of maximum thrust, almost-everywhere stable motion and force control, and fully-onboard local-
+ization without external motion capture or off-board computation. We inherit the standard PX4
+quadrotor architecture and configure its perception, control, and thrust allocation modules for the
+2Slip rings could be used instead to enable unlimited rotation along both axes.
+13
+PAGE 14
+localization and navigation of MorphQuad. The autonomy pipeline consists of four stages that
+translate the high-level setpoint commands into rotor and gimbal commands: (a) a trajectory plan-
+ner that generates position and attitude trajectories based on the time-stamped setpoints we define
+along a path for a task; (b) a generalized geometric controller that computes the force and torque
+required for MorphQuad to track the planned trajectories; (c) an optimal thrust allocation that
+realizes the required force and torque by calculating the rotor speed and gimbal angles of each
+independently articulated rotor system; and (d) a state estimator that fuses camera and IMU mea-
+surements to enable localization in GPS-denied environments, free of a motion capture system.
+Trajectory planner.We implement a trajectory planner to convert user-defined position and
+attitude setpoints into a smooth trajectory for MorphQuad to track since we design each task, in-
+cluding manipulations, with a series of time-stamped setpoints. In contrast to planners for regular
+quadrotors that consider coupled translation and rotation, our planner decouples them thanks to
+MorphQuad’s ability to generate translational force at any orientation using independently articu-
+lated rotor systems. We use quintic-polynomial trajectories that guarantee continuous accelerations
+and smooth velocities (62) to connect the timed setpoints. We script the setpoints on the onboard
+companion computer (Jetson) and send the converted trajectory snapshots to the flight controller
+(Autopilot), in the form of reference states (Rd,ω d,p d,v d) at a frequency of100Hz.
+Generalized geometric controller.Our generalized geometric controller computes the desired
+force and torque for MorphQuad to track the reference states provided by the trajectory planner; it
+leverages the omnidirectional thrust vectoring of MorphQuad to attract the vehicle to any arbitrary
+desired state. In contrast to a geometric controller on regular quadrotors (63) that only computes
+the thrust perpendicular to the body plane, we allow the geometric controller to independently
+command a thrust force spanning all three translational axes, on top of a torque spanning all three
+rotational axes. The generalization grants almost-everywhere exponential stability: MorphQuad
+can track trajectories across independent translation inR 3, and at the same time, the rotation on
+the entireSO(3)manifold with only zero-measure exceptions, without the orientation-dependent
+14
+PAGE 15
+translation seen on regular quadrotors. We augment the generalized geometric controller withL 1
+adaptation (64); it allows MorphQuad to estimate and reject unmodeled disturbances from any
+direction by vectoring thrust in the counteracting direction of the disturbance in real time. 3 We
+derive the full generalized controller and adaptive law in the Materials and Methods section.
+Thrust allocation.Our thrust allocation converts force and torque commands from the controller
+into the angular velocities (Ωi) of the rotor systems, and the angular positions (αi,β i) of the gimbal
+servos. The allocation drives MorphQuad’s four independently articulated rotor systems by solving
+a linear inversion that respects mechanical gimbal-lock and permits inter-rotor thrust cancellations
+to reduce downwash interference between rotors. We implement the allocation within the existing
+PX4 mixer framework, preserving compatibility with standard multirotor toolchains. We derive the
+full allocation in the Materials and Methods and prove its optimality in Supplementary Materials.
+State estimation.Our state estimator provides state feedback of the vehicle’s current position
+and orientation (R,ω,p,v) at800Hz by fusing visual-inertial odometry with inertial measure-
+ments using an Extended Kalman Filter. The state feedback enables the generalized geometric
+controller to compute the desired force and torque for trajectory tracking. We choose commer-
+cially available sensors, a stereo camera for visual-inertial odometry, and an off-the-shelf IMU
+suite, to maintain the compact standard design.
+Experiment setup
+We evaluate MorphQuad’s co-designed hardware and autonomy in delivering maneuverability,
+manipulation, and resiliency (MMR). We design three groups of experiments (Figure 1): (a) ma-
+neuverability, where MorphQuad performs multi-revolution continual rotation and pointing, while
+3On MorphQuad,L 1 adaptation exploits that any external disturbance isfully matcheddue to MorphQuad’s om-
+nidirectional thrust vectoring (65). Alternative methods include Incremental Nonlinear Dynamic Inversion (66), for
+high-agility maneuvering, and simultaneous system identification and model predictive control, for constraint-aware
+and mode-shifting (e.g., from free flight to in-contact flight) task execution (67).
+15
+PAGE 16
+either translating to inspect a pipe, or hovering to track a hand movement; (b) manipulation, where
+MorphQuad turns a valve, nails a target, and pushes an object through contact-based force applica-
+tion; and (c) resiliency, where MorphQuad rejects winds and physical-displacement disturbances.
+MorphQuad completes all tasks with fully-onboard autonomy pipeline without motion capture,
+GPS, or off-board computations. We next introduce the setup of each task, including objects in
+the environment, additional onboard equipment, and external devices. Then, we elaborate the
+evaluation metrics and an overview of MorphQuad’s performance in these experiments.
+Maneuverability experiments.The pipe-inspection workspace contains two horizontal paral-
+lel pipes (Figure 4(A)) with a vertical gap of1.3times MorphQuad’s side length, forcing tight
+position tracking for collision-free traversal. The hand-tracking workspace has a human operator
+standing1.5m in front of MorphQuad (Figure 4(B)); the operator extends one hand toward Mor-
+phQuad’s onboard camera, and MorphQuad hovers in place, tracking the hand’s pointing direction
+and matching its roll tilt in real time while the operator moves the hand.
+Manipulation experiments.For the valve-turning task, we mount a valve on a wall3m above
+the ground, with its30cm-long axis extruding outward at45 ◦ from the wall (Figure 5(A)); such
+a valve would otherwise require a human operator on a ladder to operate. We equip MorphQuad
+with a rigid “Y”-shaped passive end-effector at its front that enters the valve’s spokes to turn it.
+For perching and nailing, we mount a styrofoam block on a wall2m above the ground; we attach
+a nail perpendicularly to MorphQuad’s bottom via a neodymium magnetic connector that releases
+cleanly after insertion (Figure 5(B)). For pushing, we place a wheeled whiteboard weighing30kg
+unrestrained on the floor (Figure 5(C)); MorphQuad needs to perch on the whiteboard to push it.
+Resiliency experiments.For wind disturbances, we direct a leaf blower at MorphQuad with its
+nozzle within30cm of MorphQuad’s front face, producing an airflow of30m/s measured at the
+same front face (Figure 6(A)). Unlike a wind tunnel (18) or fan array (61) that generates a uniform
+freestream, this setup concentrates peak airflow at a small incidence area, producing spatially non-
+16
+PAGE 17
+uniform and time-varying force and torque disturbances that simultaneously load translation and
+rotation —a regime distinct from, not easier than, a uniform freestream. For impulsive physical
+displacements, a human operator wields a hammer to apply the physical displacement; the hammer
+head makes direct contact with MorphQuad’s body, producing lateral pushes and off-centered picks
+(Figure 6(B)). For sustained disturbances, the operator applies a pulling force via a tether connected
+to MorphQuad through an inline force meter (Figure 6(C)).
+Task implementation and evaluation metric.We define task-specific setpoints of each task
+for the trajectory planner and record position and orientation tracking errors throughout. Because
+MorphQuad achieves localization from onboard visual-inertial odometry, we report all tracking
+errors in the world frame as estimated by the onboard state estimator. We do not evaluate the
+accuracy of contact force and torque since neither the trajectory planner commands contact force
+or torque, nor is the vehicle equipped with the necessary sensors. Specifically, for manipulation
+tasks, MorphQuad relies on position and attitude references by the planner, and maintains accurate
+trajectory tracking, upon treating any counteracting forces and torques as disturbances.
+Evaluation summary. (a) Maneuverability: MorphQuad demonstrates simultaneous rotation
+and translation, including720 ◦ continual rotation that is unprecedented on previous variable-tilt
+multirotors. The trajectory tracking maintains a position RMSE below6cm and orientation RMSE
+below5 ◦.(b) Manipulation: MorphQuad demonstrates omnidirectional force and torque appli-
+cation, including a lateral force generation comparable to its takeoff mass (4.56kg) and its torque
+application comparable to a human wrist (4.92Nm). Upon the completion of tasks, we report a
+position RMSE below5cm and an attitude RMSE below3 ◦ along axes that are not affected by the
+interaction.(c) Resiliency: MorphQuad maintains similar motion accuracy across different hover-
+ing attitudes amid winds and push/pull/pick disturbances, even when a30m/s wind gust is directly
+fed to one of its propellers. MorphQuad achieves a position RMSE of approximately8cm along
+the dominant wind axis, and the orientation RMSE below5 ◦. MorphQuad maintains its position
+RMSE2–4cm and orientation RMSE below5 ◦ on axes orthogonal to physical displacements.
+17
+PAGE 18
+Min-max
+Mean
+0.1
+0.0
+-0.1
+0.0
+0.1
+-0.1
+0.1
+0.0
+-0.1
+Position errors (m)
+0 5 10 15 20 25
+Time (s)
+Orientation errors (deg)
+4.75° 1.63°3.33°RMSE 
+0
+-10
+10
+0
+-10
+10
+0
+-10
+10
+0.1
+0.0
+-0.1Position error (m)Rotation error (deg)
+-10
+10
+-5
+5
+0
+(roll) (pitch)(yaw)
+(A) Continual rotation for pipe inspection 0.056 0.0380.031RMSE 
+Min-max
+Mean
+Orientation errors (deg)0
+-10
+10
+0
+-10
+10
+0
+-10
+10
+(B) Hovering and pointing for hand tracking
+Time (s)
+0 10 20 30 40
+-0.2
+0.1
+0.0
+-0.1
+-0.2
+0.1
+0.0
+-0.1
+-0.2
+0.1
+0.0
+-0.1
+Position errors (m)
+Position error mag (m)0.00
+0.15
+0.10
+0.05
+0.055RMSE 
+Side view: Pitch Front view: Roll
+ Top view: Yaw
+Rotation error mag (deg)
+10.0
+5.0
+0.0
+15.0
+6.99°RMSE 
+Figure 4:Maneuverability experiments.(A)Continual rotation during pipe inspection: Mor-
+phQuad rotates around a pipe continually for720 ◦ following a circular translation trajectory, its
+heading direction always pointing at the pipe.(B)Hovering and pointing for hand tracking: Mor-
+phQuad tracks a human operator’s hand orientation from a fixed hover point using onboard vision,
+independently commanding roll, pitch, and yaw while maintaining position.
+18
+PAGE 19
+Maneuverability: Simultaneous translation and multi-revolution rotation
+We demonstrate MorphQuad’s motion stability and accuracy during omnidirectional flight, includ-
+ing simultaneous translation and multi-revolution rotation, unprecedented on previous variable-tilt
+multirotors. In particular, MorphQuad performs (a) pipe inspection via a continual720 ◦ pitch ro-
+tation around a pipe while keeping the heading direction towards the pipe; it emulates practical
+maintenance applications where the robot needs to traverse between pipes and keep onboard sen-
+sors pointing towards a target and (b) real-time hand tracking using onboard vision while hovering;
+it showcases MorphQuad’s quick and accurate response to dynamic and unpredictable target states.
+Continual rotation for pipe inspection
+MorphQuad executes the pipe-inspection task by simultaneously translating along a circle with a
+1m diameter in a vertical plane around a horizontal pipe and pitching720 ◦ continually, as shown
+in Figure 4(A). The narrow inter-pipe gap demands accurate position tracking for collision-free
+operation despite the excessive rotation. MorphQuad achieves position errors below6cm RMSE
+on all three axes and pitch errors at5.5 ◦ RMSE across the full trajectory. The demonstration of
+simultaneous multi-revolution continual rotation during translation is unprecedented on previous
+variable-tilt multirotors, demonstrating its maneuverability.
+Hovering and pointing for hand tracking
+Dynamic and unpredictable setpoints challenge the controller and hardware under conditions closer
+to real-world pointing tasks than pre-scripted trajectories (Figure 4(B)). We implement an onboard
+hand-orientation detector to estimate the operator’s hand pose from the front camera feed and send
+orientation setpoints to the flight controller, so that MorphQuad follows the hand pose: pitch and
+yaw authority allow the vehicle to point in any direction, effectively sweeping the camera over a
+full sphere, while roll commands keep the hand upright in the camera frame.
+Despite the dynamic hand movements, MorphQuad maintains a position RMSE of5.5cm dur-
+ing hand tracking, confirming that the position controller remains decoupled from the orientation
+19
+PAGE 20
+commands even under reactive setpoints. The orientation tracking RMSE is6.99 ◦, with the error
+distribution concentrated between approximately3 ◦ and8 ◦. Occasional outliers exceeding15 ◦ cor-
+respond to rapid hand accelerations that momentarily saturate the visual servo reaction, accounting
+for the higher orientation error relative to experiment (a).
+Manipulation: Turning valves, perching and nailing, and pushing objects
+We demonstrate MorphQuad’s capability of force and torque application —at a similar level to a
+human wrist— in arbitrary directions. In particular, we design three tasks of distinct objectives
+(Figure 5): (a) Turning a valve wheel; it requires torque application on top of motion control.
+(b) Perching on a wall and pressing a nail into a surface; it requires sustained directional force ap-
+plication on top of motion control. (c) Pushing a heavy wheeled object; it requires sustained force
+application against an unrestrained moving surface, challenging the control resiliency. We remark
+that all manipulation tasks remain open-loop with respect to contact: MorphQuad uses neither
+force/torque sensors, nor visual servoing during manipulation; instead, the trajectory planner only
+prescribes position and attitude setpoints. The vehicle follows the smooth trajectory that connects
+the setpoints upon treating all counteracting contact forces and torques as disturbances.
+Valve turning
+MorphQuad approaches the valve at a45 ◦ pitch to align the end-effector with the spokes of the
+valve wheel. Once engaged, MorphQuad locks its position and rotates about the valve axis to
+complete the turning, as shown in Figure 5(A). As wheeled valves are common infrastructure
+control mechanisms, this task highlights the potential of MorphQuad in maintenance automation.
+During task execution, MorphQuad simultaneously holds position and rolls aligned with the
+valve axis to generate a torque that rotates the wheel. The experiment is demanding since Mor-
+phQuad operates close to the wall, on top of the unknown torque needed to turn the valve, the
+aerodynamic wall effects perturb the airflow and risk the position control accuracy; consequently,
+a high position error would cause collision between MorphQuad and the surrounding structures.
+20
+PAGE 21
+Despite the challenges, MorphQuad maintains position control throughout the valve turning
+maneuver, with position RMSE at 4 cm along the z-axis and below 3 cm along the x- and y-axes.
+Orientation RMSEs are3.9 ◦ in roll,7.7 ◦ in pitch, and2.4 ◦ in yaw. We attribute the elevated pitch
+error to the added mass of the front-mounted end-effector: the added mass induces a nose-down
+moment not directly accounted for in the geometric controller since we employ MorphQuad’s
+nominal model without the front-mounted end-effector. We record a maximum body torque of
+4.92Nm in pitch (and by symmetry in roll) during hover, confirming that the rotor system delivers
+torque authority that is comparable to human wrists (59) and satisfies industrial specifications (60).
+Perching and nailing
+MorphQuad approaches the wall while continuously rotating its body, transitioning from nominal
+hover to a wall-parallel pose; once the nail aligns with the target, the controller applies a sustained
+force toward the wall to perch and press the nail into the styrofoam, as shown in Figure 5(B);
+finally, MorphQuad moves up to break the magnetic connection and retreats from the wall. This
+task demonstrates the application of a sustained force while holding an arbitrary pose that promises
+MorphQuad in versatile manipulation.
+MorphQuad maintains a tracking error similar to hover during the approach and rotation phase
+(Figure 5(B)). Upon contact, noticeable oscillation appears as the nail resists insertion. We attribute
+this oscillation to (i) compliance in the landing legs leads to vibration at impact with the wall, and
+(ii) the close proximity of the propellers to the wall induces turbulence that disturbs the rotor thrust.
+Despite these disturbances, the overall position RMSE remains approximately5cm across all three
+axes, with orientation RMSEs of2.4 ◦,2.9 ◦, and2.3 ◦ in roll, pitch, and yaw, respectively.
+21
+PAGE 22
+0.05
+0.00
+-0.10
+-0.05
+Position error (m)
+0.028 0.0410.026RMSE 
+(A) Turning valves
+0
+-10
+10
+20
+(roll) (pitch) (yaw)
+Rotation error (deg)
+7.73° 2.44°3.86°RMSE 
+0.05
+0.00
+-0.05
+-0.10
+0.05
+0.00
+-0.05
+-0.10
+0.05
+0.00
+-0.05
+-0.10
+Position errors (m)
+0 5 10 15 20 25 30 35
+0
+-10
+10
+0
+-10
+10
+0
+-10
+10
+Time (s)
+Orientation errors (deg)
+Min-max
+Mean
+Turning
+valve
+Position error (m)
+0.1
+0.0
+-0.1
+Rotation error (deg)
+-10
+10
+-5
+5
+0
+0
+-10
+10
+0
+-10
+10
+0
+-10
+10
+0 5 10 15 20 25 30
+Time (s)
+Orientation errors (deg)
+0.1
+0.0
+-0.1
+0.0
+0.1
+-0.1
+0.1
+0.0
+-0.1
+Position errors (m)
+Min-max
+Mean
+Magnet
+module Nail
+(B) Perching
+0.041 0.0480.056RMSE 2.94° 2.29°2.41°RMSE Pushing
+nail
+(roll) (pitch) (yaw)
+Position error (m)
+0.2
+0.0
+-0.2
+-0.4
+-0.6
+-0.8
+Applying
+force
+0.203 0.1540.037RMSE (C) Pushing objects
+Rotation error (deg)
+-5
+10
+5
+0
+4.97° 2.12°2.79°RMSE 
+(roll) (pitch) (yaw)
+Figure 5:Manipulation experiments.(A)Valve turning: MorphQuad approaches a wall-mounted
+valve and rotates the wheel by generating body torque.(B)Perching and nailing: MorphQuad
+transitions from nominal hover to a wall-parallel pose and presses a magnetically attached nail
+into a styrofoam target.(C)Pushing objects: MorphQuad perches onto a wheeled whiteboard and
+displaces it across the floor.
+22
+PAGE 23
+Pushing objects
+We task MorphQuad to push the whiteboard across the floor for around1m (Figure 5(C)), emu-
+lating a door-opening or obstacle-clearing action in search-and-rescue. Unlike pressing against a
+rigid wall, MorphQuad perches onto the whiteboard and drives it across the floor, requiring the con-
+troller to maintain consistent contact against a surface that moves. Wall effects persist throughout
+the interaction. Because the manipulation pipeline currently operates without feedback on contact
+force, we feedforward a constant body-frame acceleration after perching to sustain the push.
+We report, in Figure 5(C), a noticeably higher position error along the y-axis than in other
+experiments. Since MorphQuad converts the desired pushing force into a constant body-frame ac-
+celeration without updating the position setpoint, the approximately0.8m of board displacement
+accumulates directly as reported y-axis error. The remaining axes exhibit considerably smaller er-
+rors, with x-axis RMSE at approximately3cm and z-axis RMSE at roughly15cm. We attribute the
+elevated z-axis error to intensified wall effects and contact friction from sustained close proximity
+to the whiteboard surface. The controller maintains stable attitude tracking throughout the push,
+with orientation RMSEs of approximately2.8 ◦ in roll,5.0 ◦ in pitch, and2.1 ◦ in yaw, confirming
+that sustained contact does not compromise attitude stability.
+Resiliency: Disturbance rejection under winds and physical displacements
+We demonstrate MorphQuad’s resilient operation under challenging disturbances —including a
+30m/s (67mph or108km/h) wind stream directed into a single rotor system, applied across multi-
+ple hover attitudes. In particular, we design three types of disturbances that span real-world flight
+(Figure 6): (a) Hovering at different attitudes under sustained winds from time-varying directions;
+it demonstrates MorphQuad’s control resiliency under aerodynamic disturbances, the most com-
+mon real-world stressor for aerial vehicles. (b) Impulsive push and pick disturbances; it demon-
+strates transient recovery from collisions and the decoupling of translational and rotational control.
+(c) Sustained tethered pull; it demonstrates motion accuracy under continuous load.
+23
+PAGE 24
+(B) Push disturbance
+Time (s)
+Orientation errors (deg)
+0 5 10 15 20 25 30
+0
+-20
+20
+0
+-20
+20
+0
+-20
+20
+Position errors (m)
+0.2
+0.0
+-0.2
+0.4
+0.6
+0.2
+0.0
+-0.2
+0.2
+0.0
+-0.2
+Min-max
+Mean
+Orientation displace (picking) Position displace (pushing)
+Position error (m)
+0.2
+0.4
+0.0
+-0.2
+0
+-10
+-20
+10
+20
+Rotation error (deg)(roll) (pitch) (yaw)
+6.49° 2.47°4.30°RMSE 0.206 0.0440.020RMSE 
+(C) Pull disturbance
+0.0 0.2 0.4 0.6 0.8
+60
+80
+40
+20
+0
+100
+ (deg)
+Position displacement (m)
+MorphEUS
+Regular quadrotor
+Position error (m)
+0.0
+-0.2
+-0.4
+-0.6
+-0.8
+2.5
+0.0
+-2.5
+5.0
+7.5
+Rotation error (deg)(roll) (pitch) (yaw)
+5.76° 1.02°2.38°RMSE 
+Normalized mass (kg)
+ Time (s)
+0 10 20 30 40
+2
+1
+0
+3
+RMS: 1.82 kg, Mean: 1.28 kg, Peak: 3.56 kg
+Displacement-induced force
+Maximum
+pulling
+0.410 0.0190.044RMSE 
+(A) Wind disturbance (30+ m/s)
+0 2 4 6 8 10 12
+Time (s)
+Orientation errors (deg)
+0
+-10
+10
+0
+-10
+10
+0
+-10
+10
+0.2
+0.0
+-0.2
+0.0
+0.2
+-0.2
+0.2
+0.0
+-0.2
+Position errors (m)
+Min-max
+Mean
+Rotation error (deg)
+-5
+10
+15
+5
+0
+(roll) (pitch) (yaw)
+4.63° 2.89°2.79°RMSE 
+0.1
+0.2
+0.0
+-0.2
+-0.1
+Position error (m)
+0.078 0.0400.036RMSE 
+Figure 6:Resiliency experiments.(A)Wind: MorphQuad holds a hover setpoint under time-
+varying leaf-blower output.(B)Push and pick: MorphQuad endures impulsive translational and
+rotational displacements.(C)Pull: MorphQuad reacts to sustained pulling force.
+24
+PAGE 25
+Strong varying wind fields
+We design four hover scenarios that span the range of real-world wind encounters: abrupt onset
+from an off-axis direction, periodic sweeping across the front face of MorphQuad, abrupt onset
+while the quadrotor hovers in a vertical (90 ◦ pitch) pose exposing its full lateral cross-section
+(Figure 6(A)), and direct blowing into a single propeller creating highly asymmetric aerodynamic
+interference. We sustain each scenario for 30 seconds while MorphQuad hovers at a fixed setpoint.
+MorphQuad maintains stable hovering at different attitudes despite the winds. Because the
+wind is predominantly oriented along the y-axis of MorphQuad, the largest positional displace-
+ment appears in that direction with an RMSE of approximately 8 cm, while the x- and z-axes
+remain closer to 4 cm. The controller maintains strong attitude tracking throughout, with orienta-
+tion RMSEs of2.8 ◦ in roll,4.6 ◦ in pitch, and2.9 ◦ in yaw. These results validate the flight resiliency
+of MorphQuad under unknown, strong, and time-varying aerodynamic disturbances.
+Impulsive push and pick disturbances
+We evaluate MorphQuad’s ability to recover from sudden displacements by applying disturbances
+at irregular intervals. We apply two types of disturbances: lateral pushes to the quadrotor body
+that induce translational displacements, and off-centered vertical pushes from below (picks) that
+simultaneously displace MorphQuad and impart a rotational disturbance. Physical collisions are
+an unavoidable reality in cluttered environments and during contact-based tasks.
+Push disturbances along the y-axis displace the quadrotor by as much as 50 cm from its setpoint
+(Figure 6(B)). Despite these large translational excursions, the controller holds the orthogonal axes
+with errors comparable to maneuver tasks (x-axis RMSE: 2 cm; z-axis: 4 cm). Similarly, although
+pitch reaches over20 ◦ of disturbance in both directions, the controller maintains roll and yaw
+at4.3 ◦ and2.5 ◦ RMSE, respectively. The time-series data confirm decoupled recovery: large
+positional displacements do not propagate into rotational errors, and large rotational disturbances
+do not degrade translational tracking.
+25
+PAGE 26
+Sustained pull disturbances
+We quantify MorphQuad’s maximum disturbance rejection capability by subjecting it to sustained
+pulling forces. The operator gradually increases the tension until MorphQuad reaches its maxi-
+mum sustainable resistance. The force sensor records a peak load of 4.55 kg, while the disturbance
+force estimated from the position error and controller state reaches 3.56 kg. The 0.99 kg discrep-
+ancy between the two measurements is attributed to online disturbance rejection that counteracts a
+portion of the pulling force before it manifests as position error.
+Consistent with the push disturbance results, a large y-axis displacement exceeding 80 cm does
+not propagate into the orthogonal axes (Figure 6(C)): the x-axis RMSE remains at 4.4 cm and the
+z-axis at 2 cm, while the controller holds roll and yaw at2.4 ◦ and1.0 ◦, respectively. The pitch
+RMSE of5.8 ◦ reflects the slight upward angle of the tether pull.
+We contextualize this result through a scatter plot in Figure 6(C) comparing the rotational er-
+ror induced by translational displacement for MorphQuad against a simulated standard quadrotor
+under identical tether loading conditions. For MorphQuad, increasing positional displacement pro-
+duces virtually no growth in rotation error, confirming decoupled disturbance rejection. The sim-
+ulated conventional quadrotor exhibits rapidly growing rotation error with displacement because
+it must pitch or roll to generate the lateral thrust needed to counteract the positional disturbance.
+This comparison quantitatively illustrates a fundamental advantage of MorphQuad’s independently
+articulated rotor architecture: MorphQuad rejects external forces through independent thrust vec-
+toring, whereas a standard quadrotor suffers coupled translational and rotational responses.
+26
+PAGE 27
+Discussion
+Summary of results.MorphQuad is the first omnidirectional multirotor aerial vehicle to simul-
+taneously achieve Enablers I–III. We validate MorphQuad, with fully-onboard autonomy, in MMR
+experiments.(a) Maneuverability:MorphQuad rotates continuously beyond360 ◦ while trans-
+lating around pipes, and points while hovering to track a hand.(b) Manipulation:MorphQuad
+generates torque of4.92Nm and lateral force of4.55kg on top of hovering —comparable to a hu-
+man wrist (59) and sufficient for industrial tasks (60)— enabling it to turn an inclined valve, perch
+on a wall to press a nail, and push heavy objects.(c) Resiliency:MorphQuad holds against30m/s
+wind from any direction —including wind directed into a single rotor system— impulsive pushes,
+and sustained pulls. Across all tasks, MorphQuad holds position within2–5cm and orientation
+within3–6 ◦ along undisturbed axes.
+Significance.MorphQuad promises to enable autonomous infrastructure maintenance, contact-
+based inspection, and emergency response with a single aerial platform.Infrastructure inspection
+and maintenance: The pipe inspection demonstrates the simultaneous translation and beyond-
+360◦ rotation needed for practical infrastructure inspection. The valve turning demonstrates the
+human-level torque needed to operate industrial mechanisms at hard-to-reach sites as both work-
+flows today rely on scaffolding, rope access, or a human operator on a ladder.Contact-based
+inspection: The perching-and-nailing demonstrates the sustained directional human-level force
+needed to press sensors against infrastructure surfaces for integrity assessment, regardless of sur-
+face orientation.Emergency response: The object pushing, alongside resilience to wind, im-
+pulsive pushes, and sustained pulls, demonstrates the obstacle-clearing capacity comparable to a
+human wrist; it also demonstrates disturbance robustness needed in cluttered, wind-exposed, and
+collapsed environments. All results are obtained with fully on-board sensing and computation —
+no motion capture, no GPS, no off-board compute— removing the constraint that has confined
+prior omnidirectional multirotor demonstrations to laboratory settings, and aligning MorphQuad
+with the unstructured environments these applications demand.
+27
+PAGE 28
+Future work.We will extend MorphQuad along (a) robust, adaptive, and agile flight, (b) force-
+aware physical interaction, and (c) natural-language control.(a) Robust, adaptive, and agile
+flight: adding LiDAR-based SLAM (68, 69) to enhance MorphQuad’s fully-onboard autonomy
+would let it navigate robustly across low-light, cluttered environments where cameras alone strug-
+gle. Combining online system identification with model-predictive control (67) would provide
+MorphQuad with adaptive transitions between free flight and in-contact flight. Explicitly modeling
+the dynamics of motors and servos, for example through incremental nonlinear dynamic inversion
+(INDI) (66), could sharpen the responsiveness of thrust vectoring and push MorphQuad toward
+acrobatic-level maneuvers.(b) Force-aware physical interaction: MorphQuad’s resiliency al-
+ready absorbs contact forces. Adding end-effector force and torque sensing (3) together with soft
+manipulators (70) would allow precise interaction, enabling delicate aerial tasks such as inspec-
+tion, assembly, and contact-rich maintenance.(c) Natural-language control: integrating vision-
+language-action models (71) would bring foundation-model manipulation —common in fixed-base
+robotic arms— into the air, letting operators direct MorphQuad through natural language.
+28
+PAGE 29
+Materials and Methods
+We present the mechatronic components, dynamics, and control framework that enable Mor-
+phQuad to realize vectoring of maximum thrust in any direction and almost-global stability on
+a compact quadrotor design with fully onboard autonomy. We first identify the mechatronic com-
+ponents of the vehicle structure, actuation, and onboard computing, then derive the translational
+and rotational dynamics of MorphQuad, and finally present the three-layer control architecture:
+a geometric controller for singularity-free trajectory tracking onSE(3), anL 1 adaptive augmen-
+tation for disturbance compensation, and a null-space-aware thrust allocation that resolves inter-
+rotor aerodynamic interference and gimbal lock. Together, these components translate high-level
+SE(3)trajectory commands into individual rotor speeds and gimbal angles that demonstrate Mor-
+phQuad’s maneuverability, manipulation, and resiliency.
+Mechatronic design
+Main body.We preserve the compact footprint of a conventional quadrotor by arranging the
+four rotor systems in an H-configuration on a main body composed of two parallel carbon-fiber-
+infused PLA plates (Figure 2(A)). The dual-plate design serves a structural and organizational role:
+the ESCs and power distribution electronics sit protected between the plates, the top plate houses
+the flight and task computers, and the bottom plate mounts the camera for visual-inertial odometry.
+This arrangement retains the geometric profile needed to access confined and narrow environments
+while housing the full actuation, sensing, and computation required for omnidirectional flight. The
+takeoff mass, including batteries, is4.56kg, and all electronic and mechanical components are
+commercially available off-the-shelf products.
+Rotor systems.Each rotor system pairs two coaxial counter-rotating rotors with a two-axis gim-
+bal (Figure 3(A)): the counter-rotating pair cancels rotor-induced drag torque and gyroscopic pre-
+cession, and the gimbal orients the pair to direct thrust in any direction. Each gimbal axis is driven
+by a DYNAMIXEL servo selected for its compact form factor and position feedback —XL330-
+29
+PAGE 30
+M288-T on the inner axis, XC330-M288-T on the outer— and the eight servos daisy-chain over
+a single UART bus to the flight computer. Each coaxial pair consists of two brushless T-Motor
+VELOX 3008 1500KV motors driving 6-inch triple-blade propellers, sized for a rotor-pair thrust
+of2.8kg that lets MorphQuad hover at40% throttle. Peak motor draw exceeds43.6A during fast
+maneuvers, which sets our choice of independent ESCs rated at51A continuous current.
+Computing and simulation.The onboard computing stack enables fully-onboard autonomy
+without off-board compute or motion capture: a Pixhawk Autopilot FMUv6x flight controller runs
+attitude and position control, an NVIDIA Jetson Orin Nano runs trajectory generation, and an Intel
+RealSense stereo-vision depth camera supplies the VIO sensor stream (72,73). To validate the full
+software stack prior to hardware deployment, we integrate MorphQuad’s structural, kinematic, and
+dynamic models into a ROS and Gazebo software-in-the-loop (SITL) simulator.
+Vehicle Dynamics
+The omnidirectional maximum thrust vectoring capability of MorphQuad originates from the
+gimbal-mounted coaxial rotor systems, whose servo-driven tilt angles appear directly in the equa-
+tions of motion. We define four coordinate frames for the derivation: the world frameW, the
+body-fixed frameB, and a propeller-fixed frameP i for each rotor armi∈ {1,2,3,4}. The frame
+conventions and servo angles are shown in Figure 7. By design, theB-to-P i transformation is
+parameterized by two servo positions:α i controlled by the inner servo andβ i by the outer servo,
+as shown in Figure 3(C) and Figure 7. These servo angles provide additional actuator commands
+alongside the propeller speeds, giving MorphQuad a total of twelve independent control inputs.
+30
+PAGE 31
+World frame:
+Body frame:
+Propeller frame 2:
+Propeller frame 1:
+Propeller frame 4:
+Propeller frame 3:
+100
+-100
+0
+100
+-100
+0
+50
+-50
+100
+-100
+0
+Force envelope
+Force generation
+Torque envelope
+0
+10
+20
+30
+-10
+-20
+-30
+0 10
+-10 0
+1620
+-20 18
+20
+109.872
+22
+24
+26
+28
+30
+Torque generation
+(A)
+(B)
+Figure 7: (A)Schematic of the quadrotor highlighting coordinate frames and servo angles.(B)
+Force and torque envelopes of MorphQuad, assuming that each arm can apply a maximum thrust
+of24.5N. Force envelope assumes desired torque to be zero, and vice versa. Both envelopes are
+obtained assuming no thrust cancellation enabled for inter-rotor downwash avoidance.
+31
+PAGE 32
+The translational dynamics are
+˙p=v, m ˙v=mg+Rf,(1)
+wherep∈R 3 andv∈R 3 are position and velocity inW,mis the quadrotor mass,g∈R 3 is the
+gravitational acceleration inW,R∈SO(3)is the rotation matrix fromBtoW, andf∈R 3 is the
+total propeller force inB.
+The gimbal design enables the generation of rotor thrust, and thus the body forcesf, in any
+direction. Each rotor system produces a vectorized thrust whose direction is set by the servo angles
+αi, βi and whose magnitude scales with the propeller angular velocityΩ i. The body-frame force is
+f=
+4X
+i=1
+ti =c t
+4X
+i=1
+Gi(αi, βi) Ω2
+i ,(2)
+wherec t is the thrust coefficient and the thrust direction vector
+Gi(αi, βi) =
+
+
+sinα i cosβ i
+−sinβ i
+cosα i cosβ i
+
+ (3)
+results from two intrinsic rotations of the gimbal: first byα i about thej B axis (inner servo), then
+byβ i about the rotatedi B axis (outer servo), as shown in Figure 7.
+The rotational dynamics follow Euler’s equations,
+˙R=R[ω] ×,J ˙ω=−ω×J ω+τ,(4)
+whereω∈R 3 is the angular velocity inB,[·] × :R 3 →R 3×3 is the skew-symmetric matrix
+operator,J∈R 3×3 is the inertia matrix inB, andτ∈R 3 is the propeller torque inB.
+A key advantage of the coaxial design is that each pair of counter-rotating propellers cancels
+the aerodynamic drag torque and eliminates the gyroscopic reaction that would otherwise resist
+gimbal motion. The servos can therefore redirect thrust using minimal effort, and the net torque
+on the body reduces to the moment of each thrust vector about the center of mass (COM),
+τ=
+4X
+i=1
+li ×t i,(5)
+32
+PAGE 33
+wherel i = [l i,x, l i,y, l i,z]⊤ is the position vector from the COM to the center of propelleri, and
+ti =c tGi(αi, βi) Ω2
+i is the thrust of propelleriinB. Substituting yields
+τ=c t
+4X
+i=1
+H i(αi, βi) Ω2
+i ,(6)
+where
+H i(αi, βi) =
+
+
+li,y cosα i cosβ i +l i,z sinβ i
+−li,x cosα i cosβ i +l i,z sinα i cosβ i
+−li,x sinβ i −l i,y sinα i cosβ i
+
+ .(7)
+Combining the force (2) and torque (6) expressions gives the full wrench,
+w=c t
+4X
+i=1
+
+Gi(αi, βi)
+H i(αi, βi)
+
+ Ω2
+i =c tFΩ ◦2,(8)
+wherew= [f ⊤ τ ⊤]⊤ ∈R 6 is the stacked force-torque vector,F(α,β)∈R 6×4 stacks the per-
+rotor wrench-direction vectors[G ⊤
+i H ⊤
+i ]⊤ as columns,Ω= [Ω 1 Ω2 Ω3 Ω4]⊤, and(·) ◦2 denotes
+the element-wise square.
+For control design, it is convenient to treat the individual thrust vectorst i ∈R 3 as abstracted
+inputs rather than the rotor speedsΩ i. Stacking all four thrust vectors intot= [t ⊤
+1 t⊤
+2 t⊤
+3 t⊤
+4 ]⊤ ∈
+R12, the wrench can be written in compact form as
+w=M t,(9)
+whereM∈R 6×12 is a constant matrix determined by the fixed rotor positionsl i inB. Since
+the matrix is wide and always full row-rank, the input has control over all wrench channels: the
+actuators can always produce a compensating input in the same subspace as an external force and
+torque disturbance, i.e., every disturbance is matched. In addition,Malso serves as the basis for
+the thrust allocation described below.
+Control
+The central capability of MorphQuad is the independent generation of forces and torques in all
+six degrees of freedom, enabling omnidirectional trajectory tracking inSE(3). This section de-
+scribes the three-layer control architecture: a geometric controller that tracks desired trajectories
+33
+PAGE 34
+onSE(3)(63), anL 1 adaptive augmentation that compensates for unknown disturbances (64), and
+a thrust allocation strategy that converts desired wrenches into rotor commands while maximizing
+hovering efficiency and avoiding actuation deficiencies.
+Geometric controller
+The geometric controller computes desired body-frame force and torque from tracking errors de-
+fined directly on theSE(3)manifold, avoiding the singularities inherent in Euler angle representa-
+tions. The tracking errors consist of two configuration-level errors and two rate-level errors,
+ep =p−p d,(position error)
+eR = 1
+2
+ 
+R⊤
+d R−R ⊤Rd
+∨
+,(orientation error)
+ev =v−v d,(linear velocity error)
+eω =ω−R ⊤Rd ωd,(angular velocity error)
+(10)
+wherep d,v d,R d,ω d are the desired position, velocity, rotation matrix, and angular velocity, and
+(·)∨ :so(3)→R 3 is the map that extracts a 3D vector from a skew-symmetric matrix.
+The desired force and torque are
+f Geo =R ⊤ (−kpep −k vev −mg+m¨p d),
+τ Geo =−k ReR −k ωeω +ω×J ω−J
+ 
+ω×R ⊤Rdωd −R ⊤Rd ˙ωd
+
+.
+(11)
+Operating directly on the nonlinearSO(3)manifold avoids the singularities present in minimal
+rotation parameterizations. This formulation provides almost-global asymptotic stability, meaning
+convergence to any desired pose from all initial conditions except a zero-measure set (63).
+Disturbance compensation
+The geometric controller guarantees exponential stability for the nominal dynamics in (1) and (4).
+In practice, MorphQuad encounters unknown disturbances such as wind and ground effects (17,
+19). To maintain robust tracking, we augment the geometric controller with anL 1 adaptive law
+34
+PAGE 35
+that estimates and cancels these disturbances in real time. The augmented dynamics are
+˙p=v, m ˙v=mg+R
+ 
+f Geo +f aug
+
++f d,
+˙R=R[ω] ×,J ˙ω=−ω×J ω+τ Geo +τ aug +τ d,
+wheref aug andτ aug are the adaptive compensation terms in the body frameB, andf d,τ d are the
+unknown disturbance force and torque. The adaptive forcef aug is expressed inBalongside the
+nominal forcef Geo and rotated to the world frame byR, while the disturbancef d acts inW.
+Defining the stacked velocity statez= [v ⊤ ω⊤]⊤, the dynamics can be written as
+˙z=f(z) +G(R) (u Geo +u aug) +B u d,(12)
+where
+f(z) =
+
+ g
+−J −1ω×J ω
+
+ ,G(R) =
+
+m−1R0 3×3
+03×3 J −1
+
+ ,B=
+
+m−1I 3 03×3
+03×3 J −1
+
+ ,
+uGeo = [f ⊤
+Geo τ ⊤
+Geo]⊤,u aug = [f ⊤
+aug τ ⊤
+aug]⊤,u d = [f ⊤
+d τ ⊤
+d ]⊤.
+The matrixG(R)maps body-frame control inputs toW-frame accelerations viaR, whileBmaps
+theW-frame disturbance force and theB-frame disturbance torque.
+TheL 1 adaptive controller consists of a state predictor, a piecewise-constant adaptation law,
+and a low-pass filter (LPF). At each control step, the algorithm uses the prediction error to estimate
+the disturbance and produces a filtered compensation signal.
+The state predictor mirrors the plant dynamics with an additional error-injection term,
+˙ˆz=f(z) +G(R) (u Geo +u aug) +h(t) +A s˜z,(13)
+where ˜z= ˆz−zis the prediction error,A s ∈R 6×6 is a user-selected diagonal Hurwitz matrix
+that governs the predictor convergence rate, andh(t)∈R 6 is the acceleration-space estimate of
+the total disturbance contributionB u d (64). The piecewise-constant adaptation law computesh
+and the corresponding disturbance estimate ˆud at each discrete time stepkas
+hk =−(exp (A sTs)−I) −1 As exp (AsTs) ˜zk, ˆud,k =−B −1hk,(14)
+35
+PAGE 36
+whereT s is the sampling time. The force component of ˆud,k is rotated fromWintoBviaR ⊤
+before filtering. The estimate is then passed through first-order LPFs with separate bandwidths
+ωf,v for force andω f,ω for torque (both in rad/s), and the adaptive compensationu aug,k is obtained
+by negating the filtered output.
+Thrust allocation
+As an overactuated omnidirectional platform, MorphQuad must convert the six-dimensional de-
+sired wrenchw= [f ⊤ τ ⊤]⊤ into twelve low-level commands: four gimbal angle pairs(α i, βi)
+and four rotor speedsΩ i. The allocation exploits the fact that each rotor’s thrust direction and
+magnitude are independently controllable. Because the low-level commandsα i,β i, andΩ i of each
+rotor are decoupled, it suffices to find the four three-dimensional thrust vectorst i, from which the
+individual commands can be recovered.
+We decompose each rotor’s thrust vector,t i, into four additive terms: one quarter of the total
+desired force, plus three torque contributions for roll, pitch, and yaw. For a symmetric construction
+with half-lengthl=|l i,x|, half-widthb=|l i,y|, and diagonal distancer=
+√
+l2 +b 2 from the COM
+to each propeller, the per-rotor thrust vectors are
+t1 = f
+4 + τx
+4b kB − τy
+4l kB + τz
+4r ˆeψ1,
+t2 = f
+4 − τx
+4b kB − τy
+4l kB + τz
+4r ˆeψ2,
+t3 = f
+4 − τx
+4b kB + τy
+4l kB + τz
+4r ˆeψ3,
+t4 = f
+4 + τx
+4b kB + τy
+4l kB + τz
+4r ˆeψ4,
+(15)
+whereτ= [τ x τy τz]⊤ are the scalar components of the desired torque. The unit vectors
+ˆeψi (denoting the yaw-torque direction for rotori) lie in thei B–jB plane, perpendicular to the
+corresponding rotor arms,
+ˆeψ1 =
+
+
+−b/r
+l/r
+0
+
+ , ˆeψ2 =
+
+
+b/r
+l/r
+0
+
+ , ˆeψ3 =
+
+
+b/r
+−l/r
+0
+
+ , ˆeψ4 =
+
+
+−b/r
+−l/r
+0
+
+ .(16)
+36
+PAGE 37
+The decomposition in (15) is equivalent to the Moore-Penrose pseudo-inverse solutiont=M †w
+withM † =M ⊤(M M⊤)−1, which yields optimal thrust efficiency analogous to the minimum-
+norm allocation of a conventional quadrotor.
+Sincet i =c tGi(αi, βi) Ω2
+i , the rotor speed and servo angles can be recovered from each thrust
+vector. Defining the unit thrust direction ˆti =t i/∥ti∥with components ˆti = [ˆti,x ˆti,y ˆti,z]⊤, the
+trigonometric relations give
+Ωi =
+p
+∥ti∥/ct ,and
+
+
+
+βi = sin−1(−ˆti,y), α i = atan2
+ ˆti,x, ˆti,z
+
+,
+βi =π−sin −1(ˆti,y), α i =π+ atan2
+ ˆti,x, ˆti,z
+
+,
+(17)
+whereatan2(·,·)is the two-argument arctangent. The two solution branches arise becausesin(·) =
+sin(π− ·). The output ofsin −1(·)lies in[−π/2, π/2], soβ i can reach[−π/2,3π/2]. Similarly,
+atan2(·,·)uses the signs of numerator and denominator to cover[−π, π]forα i. To minimize
+servo motion at each control step, we compare the current servo position(α′
+i, β ′
+i)with all candidate
+solutionsα i + 2kπandβ i + 2kπfor|k| ≤n r, k∈Z, and select the pair that minimizes|α ′
+i −
+αi −2kπ|and|β ′
+i −β i −2kπ|separately, wheren r constrains the maximum number of revolutions
+beyond one trigonometric period.
+Enhancement for inter-rotor downwash and gimbal lock
+We enhance the minimum-norm thrust allocation (15) to account for (a) inter-rotor downwash
+interference and (b) gimbal lock. In more detail:(a) Inter-rotor aerodynamic interference.
+When the desired torqueτ=0, the thrust allocation (15) yields co-linear thrust vectorst i ∥f
+for alli. If the desired force is alongi B, the outer servo positions becomeα i =±π/2with
+βi = 0, so all four rotor systems point their downwash toward the opposing pair. This mutual
+interference invalidates the thrust model in (2) and reduces the effective thrust of the affected
+rotors.(b) Gimbal lock.If the desired force is alongj B withτ=0, the inner servo reaches
+βi =±π/2, at which pointcosβ i = 0and the outer servoα i loses authority over the thrust
+direction. To illustrate the practical consequence, consider MorphQuad hovering at aπ/2roll
+angle so thatf= [0mg0] ⊤. If the controller subsequently commands a small perturbation
+37
+PAGE 38
+[ϵ mg0] ⊤ followed by[−ϵ mg0] ⊤ at high frequency, the computedα i would oscillate between
+±π/2, saturating the servos and destabilizing flight. This singularity shares the same mathematical
+root as mapping elements ofS 2 toT 2.
+We exploit the overactuation of MorphQuad to enable both enhancements through the null
+space ofM. BecauseM∈R 6×12 is a wide matrix, the linear systemw=M tis underdeter-
+mined. The general solution takes the form
+t=M †w+N M c,(18)
+whereN M is the null-space basis ofM(constant rank six) andc∈R 6 is a coefficient vector
+that redistributes thrust among the rotors without changing the net wrench. The coefficients are
+chosen to satisfy two conditions: (i) adjacent rotor pairs must not have co-linear thrust vectors
+whenf∥i B orf∥j B, to prevent downwash interference, and (ii) no individual thrust vector may
+be parallel toj B, to avoid gimbal lock.
+To satisfy condition (ii) and the second part of condition (i), we setc1 =c 3 =c 5 =⟨f/∥f∥,j B⟩.
+This introduces a component that repels each inner servo position away fromβ i =±π/2, propor-
+tionally to how close the desired force direction is to the gimbal-lock axis. For the first part of
+condition (i), we tilt the rotor pair on top away from pointing directly at the bottom pair by setting
+
+
+
+c2 =−c 4 =−⟨f/∥f∥,i B⟩, c 6 = 0,if⟨f/∥f∥,i B⟩>0,
+c2 =−c 4 = 0, c 6 =−⟨f/∥f∥,i B⟩,if⟨f/∥f∥,i B⟩ ≤0.
+(19)
+This conditional assignment ensures that the anti-parallel null-space perturbation is applied to
+whichever rotor pair axis is most aligned with the body-framex-direction, breaking the co-linearity
+that would otherwise cause direct downwash impingement.
+In summary, MorphQuad’s control pipeline proceeds as follows: the geometric controller com-
+putes a desired six-dimensional wrench fromSE(3)tracking errors, theL 1 adaptation augments
+this wrench to reject disturbances, the thrust allocation decomposes the augmented wrench into
+individual rotor thrust vectors, and the null-space correction adjusts these vectors to avoid inter-
+rotor downwash interference and mechanical gimbal lock. The thrust vectors are then allocated to
+gimbal angles(α i, βi)and rotor speedsΩ i through (17).
+38
+PAGE 39
+References
+1. S. Park, J. Lee, J. Ahn, M. Kim, J. Her, G.-H. Yang, D. Lee, Odar: Aerial manipulation plat-
+form enabling omnidirectional wrench generation.IEEE/ASME Transactions on mechatronics
+23(4), 1907–1918 (2018).
+2. D. Lee, B. Kim, H. J. Kim, Autonomous aerial manipulation at arbitrary pose in SE (3) with
+robust control and whole-body planning.The International Journal of Robotics Researchp.
+02783649251378195 (2025).
+3. K. Bodie, M. Brunner, M. Pantic, S. Walser, P. Pf¨andler, U. Angst, R. Siegwart, J. Nieto, Active
+interaction force control for contact-based inspection with a fully actuated aerial vehicle.IEEE
+Transactions on Robotics37(3), 709–722 (2020).
+4. M. ´A. Trujillo, J. R. Mart´ınez-de Dios, C. Mart´ın, A. Viguria, A. Ollero, Novel aerial manipu-
+lator for accurate and robust industrial NDT contact inspection: A new tool for the oil and gas
+inspection industry.Sensors19(6), 1305 (2019).
+5. S. Waharte, N. Trigoni, Supporting search and rescue operations with UA Vs, in2010 interna-
+tional conference on emerging security technologies(IEEE) (2010), pp. 142–147.
+6. W. Alawad, N. B. Halima, L. Aziz, An unmanned aerial vehicle (UA V) system for disaster and
+crisis management in smart cities.Electronics12(4), 1051 (2023).
+7. D. Seneviratne, L. Ciani, M. Catelani, D. Galar,et al., Smart maintenance and inspection of
+linear assets: An Industry 4.0 approach.Acta Imeko7, 50–56 (2018).
+8. J. Anand, C. Aasish, S. S. Narayanan, R. A. Ahmed, Drones for disaster response and man-
+agement, inInternet of Drones(CRC Press), pp. 177–200 (2023).
+9. S. Xing, X. Zhang, J. Tian, C. Xie, Z. Chen, J. Sun, Morphing quadrotors: Enhancing versa-
+tility and adaptability in drone applications—A review.Drones8(12), 762 (2024).
+39
+PAGE 40
+10. M. Lyu, Y . Zhao, C. Huang, H. Huang, Unmanned Aerial Vehicles for Search and Rescue: A
+Survey.Remote Sensing15(13) (2023), doi:10.3390/rs15133266,https://www.mdpi.
+com/2072-4292/15/13/3266.
+11. M. Zhao, F. Shi, T. Anzai, K. Chaudhary, X. Chen, K. Okada, M. Inaba, Flight motion of
+passing through small opening by dragon: Transformable multilinked aerial robot, in2018
+IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)(IEEE) (2018),
+pp. 4735–4742.
+12. F. Niroui, K. Zhang, Z. Kashino, G. Nejat, Deep Reinforcement Learning Robot for Search
+and Rescue Applications: Exploration in Unknown Cluttered Environments.IEEE Robotics
+and Automation Letters4(2), 610–617 (2019), doi:10.1109/LRA.2019.2891991.
+13. M. Ruggia, C. Bermes, FLIFO: A Passively Morphing Drone for Small Gap Traversal, in
+2025 International Conference on Unmanned Aircraft Systems (ICUAS)(2025), pp. 214–221,
+doi:10.1109/ICUAS65942.2025.11007843.
+14. P. Nooralishahi, C. Ibarra-Castanedo, S. Deane, F. L´opez, S. Pant, M. Genest, N. P. Avdelidis,
+X. P. Maldague, Drone-based non-destructive inspection of industrial sites: A review and case
+studies.Drones5(4), 106 (2021).
+15. A. Ollero, M. Tognon, A. Suarez, D. Lee, A. Franchi, Past, present, and future of aerial robotic
+manipulators.IEEE Transactions on Robotics38(1), 626–645 (2021).
+16. H. Yang, S. Park, J. Lee, J. Ahn, D. Son, D. Lee, LASDRA: Large-Size Aerial Skeleton
+System with Distributed Rotor Actuation, in2018 IEEE International Conference on Robotics
+and Automation (ICRA)(2018), pp. 7017–7023, doi:10.1109/ICRA.2018.8460713.
+17. Z. Xing, Y . Zhang, C.-Y . Su, Active Wind Rejection Control for a Quadrotor UA V Against
+Unknown Winds.IEEE Transactions on Aerospace and Electronic Systems59(6), 8956–8968
+(2023), doi:10.1109/TAES.2023.3315254.
+40
+PAGE 41
+18. M. O’Connell, G. Shi, X. Shi, K. Azizzadenesheli, A. Anandkumar, Y . Yue, S.-J. Chung,
+Neural-fly enables rapid learning for agile flight in strong winds.Science Robotics7(66),
+eabm6597 (2022).
+19. T. Yang, K. Chai, J. Ji, Y . Wu, C. Xu, F. Gao, Ground-Effect-Aware Modeling and Control
+for Multicopters.IEEE/ASME Transactions on Mechatronics30(6), 7406–7417 (2025), doi:
+10.1109/TMECH.2025.3583162.
+20. A. Garofano-Soldado, G. Heredia, A. Ollero, Aerodynamic interference in confined environ-
+ments with tilted propellers: Wall effect and corner effect, in2021 Aerial Robotic Systems
+Physically Interacting with the Environment (AIRPHARO)(IEEE) (2021), pp. 1–8.
+21. R. Watson, T. Zhao, D. Zhang, G. Dobie, C. MacLeod, S. G. Pierce, A fly-crawl-fly UA V for
+full-circumference inspection of non-magnetic pipes via thrust adhesion.IEEE Transactions
+on Automation Science and Engineering22, 24278–24293 (2025).
+22. K. Alexis, G. Darivianakis, M. Burri, R. Siegwart, Aerial robotic contact-based inspection:
+planning and control.Autonomous Robots40(4), 631–655 (2016).
+23. D. Brescianini, R. D’Andrea, Design, modeling and control of an omni-directional aerial vehi-
+cle, in2016 IEEE international conference on robotics and automation (ICRA)(IEEE) (2016),
+pp. 3261–3266.
+24. S. Park, J. Her, J. Kim, D. Lee, Design, modeling and control of omni-directional aerial robot,
+in2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)(IEEE)
+(2016), pp. 1570–1575.
+25. M. Tognon, A. Franchi, Omnidirectional aerial vehicles with unidirectional thrusters: Theory,
+optimal design, and control.IEEE Robotics and Automation Letters3(3), 2277–2282 (2018).
+41
+PAGE 42
+26. M. Hamandi, K. Sawant, M. Tognon, A. Franchi, Omni-plus-seven (O7+): An omnidirectional
+aerial prototype with a minimal number of unidirectional thrusters, in2020 International con-
+ference on unmanned aircraft systems (ICUAS)(IEEE) (2020), pp. 754–761.
+27. H. Lee, S. Cheng, Z. Wu, J. Lim, R. Siegwart, N. Hovakimyan, Geometric tracking control of
+omnidirectional multirotors for aggressive maneuvers.IEEE Robotics and Automation Letters
+10(2), 1130–1137 (2024).
+28. R. Veenstra, A. Ali, C. Gabellieri, A. Franchi, 6D Physical Interaction with an Omnidirectional
+Aerial Robot.Drones10(2), 129 (2026).
+29. M. Ryll, D. Bicego, M. Giurato, M. Lovera, A. Franchi, Fast-hex — a morphing hexarotor:
+design, mechanical implementation, control and experimental validation.IEEE/ASME trans-
+actions on mechatronics27(3), 1244–1255 (2021).
+30. Y . Aboudorra, C. Gabellieri, R. Brantjes, Q. Sabl´e, A. Franchi, Modelling, analysis, and con-
+trol of omnimorph: an omnidirectional morphing multi-rotor uav.Journal of Intelligent &
+Robotic Systems110(1), 21 (2024).
+31. M. Ryll, H. H. B ¨ulthoff, P. R. Giordano, Modeling and control of a quadrotor UA V with tilting
+propellers, in2012 IEEE international conference on robotics and automation(IEEE) (2012),
+pp. 4606–4613.
+32. M. Ryll, H. H. B ¨ulthoff, P. R. Giordano, A novel overactuated quadrotor unmanned aerial ve-
+hicle: Modeling, control, and experimental validation.IEEE Transactions on Control Systems
+Technology23(2), 540–556 (2014).
+33. J. Li, J. Li, K. Kaneko, H. Liu, L. Shu, M. Zhao, Six-DoF Hand-Based Teleoperation for
+Omnidirectional Aerial Robots, in2025 IEEE/RSJ International Conference on Intelligent
+Robots and Systems (IROS)(IEEE) (2025), pp. 15482–15488.
+42
+PAGE 43
+34. M. Kamel, S. Verling, O. Elkhatib, C. Sprecher, P. Wulkop, Z. Taylor, R. Siegwart,
+I. Gilitschenski, The voliro omniorientational hexacopter: An agile and maneuverable tiltable-
+rotor aerial vehicle.IEEE Robotics & Automation Magazine25(4), 34–44 (2018).
+35. R. Ji, J. Ma, S. S. Ge, Modeling and control of a tilting quadcopter.IEEE Transactions on
+Aerospace and Electronic Systems56(4), 2823–2834 (2019).
+36. Skygauge Inspection,https://www.skygauge.co/, accessed: 2025-12-28.
+37. Y . Luo, X. Cao, M. Lu, N. Chen, P. Lu, Agile Flight Through Tilted Spaces Using a Single-
+Servo Tilt-Rotor Quadrotor.IEEE Transactions on Industrial Electronics(2026).
+38. Y . Su, P. Yu, M. J. Gerber, L. Ruan, T.-C. Tsao, Nullspace-based control allocation of overac-
+tuated UA V platforms.IEEE robotics and automation letters6(4), 8094–8101 (2021).
+39. M. Zhao, K. Kawasaki, T. Anzai, X. Chen, S. Noda, F. Shi, K. Okada, M. Inaba, Transformable
+multirotor with two-dimensional multilinks: Modeling, control, and whole-body aerial manip-
+ulation.The International Journal of Robotics Research37(9), 1085–1112 (2018).
+40. M. Zhao, K. Okada, M. Inaba, Versatile articulated aerial robot DRAGON: Aerial manipula-
+tion and grasping by vectorable thrust control.The International Journal of Robotics Research
+42(4-5), 214–248 (2023).
+41. K. Bodie, Z. Taylor, M. Kamel, R. Siegwart, Towards efficient full pose omnidirectional-
+ity with overactuated mavs, inInternational symposium on experimental robotics(Springer)
+(2018), pp. 85–95.
+42. K. Bodie, M. Brunner, M. Pantic, S. Walser, P. Pfndler, U. Angst, R. Siegwart, J. Nieto,
+An Omnidirectional Aerial Manipulation Platform for Contact-Based Inspection, inRobotics:
+Science and Systems XV(Robotics: Science and Systems Foundation) (2019), doi:10.15607/
+rss.2019.xv.019,http://dx.doi.org/10.15607/RSS.2019.XV.019.
+43
+PAGE 44
+43. H. Mayounove, C. Picaud, Omnidirectional Propelled Vehicle with Minimal Overall Dimen-
+sions (2023).
+44. H. Mayounove, C. Picaud, G. Nicolas, Omnidirectional Vectored-Thrust Vehicle Comprising
+a Unit for Controlling the Orientation of Thrusters (2025).
+45. I. Bao, J. C. D. P. G. Pacheco, A. Navsalkar, A. Scheffer, S. Shankar, A. Zhao, H. Zhou,
+V . Tzoumas, MorphEUS: Morphable OmnidirEctional Unmanned System, inProceedings of
+the IEEE International Conference on Robotics and Automation (ICRA), OCRAIM Workshop
+(2025),https://iral-morphable.github.io/.
+46. S. Bouabdallah, P. Murrieri, R. Siegwart, Design and control of an indoor micro quadrotor,
+inIEEE International Conference on Robotics and Automation, 2004. Proceedings. ICRA’04.
+2004(IEEE), vol. 5 (2004), pp. 4393–4398.
+47. D. Mellinger, N. Michael, V . Kumar, Trajectory generation and control for precise aggressive
+maneuvers with quadrotors.The International Journal of Robotics Research31(5), 664–674
+(2012).
+48. G. Michieletto, M. Ryll, A. Franchi, Fundamental actuation properties of multirotors: Force–
+moment decoupling and fail–safe robustness.IEEE Transactions on Robotics34(3), 702–715
+(2018).
+49. M. W. Mueller, R. D’Andrea, Stability and control of a quadrocopter despite the complete
+loss of one, two, or three propellers, in2014 IEEE international conference on robotics and
+automation (ICRA)(2014), pp. 45–52.
+50. V . Artale, C. Milazzo, A. Ricciardello, Mathematical modeling of hexacopter.Applied mathe-
+matical sciences7(97), 4805–4811 (2013).
+44
+PAGE 45
+51. R. Rashad, J. Goerres, R. Aarts, J. B. C. Engelen, S. Stramigioli, Fully Actuated Multirotor
+UA Vs: A Literature Review.IEEE Robotics & Automation Magazine27(3), 97–107 (2020),
+doi:10.1109/MRA.2019.2955964.
+52. J. Xu, D. S. D’Antonio, D. Salda ˜na, H-modquad: Modular multi-rotors with 4, 5, and 6 con-
+trollable dof, in2021 IEEE International Conference on Robotics and Automation (ICRA)
+(IEEE) (2021), pp. 190–196.
+53. D. Falanga, K. Kleber, S. Mintchev, D. Floreano, D. Scaramuzza, The foldable drone: A
+morphing quadrotor that can squeeze and fly.IEEE Robotics and Automation Letters4(2),
+209–216 (2018).
+54. S. Rajappa, M. Ryll, H. H. B ¨ulthoff, A. Franchi, Modeling, control and design optimization
+for a fully-actuated hexarotor aerial vehicle with tilted propellers, in2015 IEEE international
+conference on robotics and automation (ICRA)(IEEE) (2015), pp. 4006–4013.
+55. M. Ryll, D. Bicego, A. Franchi, Modeling and control of FAST-Hex: A fully-actuated by
+synchronized-tilting hexarotor, in2016 IEEE/RSJ International Conference on Intelligent
+Robots and Systems (IROS)(IEEE) (2016), pp. 1689–1694.
+56. P. Zheng, X. Tan, B. B. Kocer, E. Yang, M. Kovac, TiltDrone: A fully-actuated tilting quadro-
+tor platform.IEEE Robotics and Automation Letters5(4), 6845–6852 (2020).
+57. S. H. Lee, Drone Having Multi-Degree-of-Freedom Flight Mode (2023).
+58. X. Zhu, X. Zheng, K. Lu, H. Li, Omnidirectional Decoupled Circular Vector Tilt-Rotor Air-
+craft and Its Control Method (2024).
+59. N. J. Seo, T. J. Armstrong, J. A. Ashton-Miller, D. B. Chaffin, Wrist strength is dependent on
+simultaneous power grip intensity.Ergonomics51(10), 1594–1605 (2008).
+60. B. Nesbitt,Handbook of valves and actuators: valves manual international(Elsevier) (2011).
+45
+PAGE 46
+61. K. Huang, R. Rana, A. Spitzer, G. Shi, B. Boots, Datt: Deep adaptive trajectory tracking for
+quadrotor control.arXiv preprint arXiv:2310.09053(2023).
+62. D. Mellinger, V . Kumar, Minimum snap trajectory generation and control for quadrotors, in
+2011 IEEE international conference on robotics and automation(IEEE) (2011), pp. 2520–
+2525.
+63. T. Lee, M. Leok, N. H. McClamroch, Geometric tracking control of a quadrotor UA V on SE
+(3), in49th IEEE conference on decision and control (CDC)(IEEE) (2010), pp. 5420–5425.
+64. Z. Wu, S. Cheng, P. Zhao, A. Gahlawat, K. A. Ackerman, A. Lakshmanan, C. Yang, J. Yu,
+N. Hovakimyan, L1Quad: L1 Adaptive Augmentation of Geometric Control for Agile Quadro-
+tors With Performance Guarantees.IEEE Transactions on Control Systems Technology33(2),
+597–612 (2025).
+65. E. Sariyildiz, R. Oboe, K. Ohnishi, Disturbance observer-based robust control and its ap-
+plications: 35th anniversary overview.IEEE Transactions on Industrial Electronics67(3),
+2042–2053 (2019).
+66. E. Tal, S. Karaman, Accurate tracking of aggressive quadrotor trajectories using incremental
+nonlinear dynamic inversion and differential flatness.IEEE Transactions on Control Systems
+Technology29(3), 1203–1218 (2020).
+67. H. Zhou, V . Tzoumas, Simultaneous system identification and model predictive control with
+no dynamic regret.IEEE Transactions on Robotics(2025).
+68. C. Zheng, W. Xu, Z. Zou, T. Hua, C. Yuan, D. He, B. Zhou, Z. Liu, J. Lin, F. Zhu,et al., Fast-
+livo2: Fast, direct lidar–inertial–visual odometry.IEEE Transactions on Robotics41, 326–346
+(2024).
+69. Y . Ren, F. Zhu, G. Lu, Y . Cai, L. Yin, F. Kong, J. Lin, N. Chen, F. Zhang, Safety-assured
+high-speed navigation for mavs.Science Robotics10(98), eado6187 (2025).
+46
+PAGE 47
+70. J. Fishman,Soft Aerial Manipulation, Ph.D. thesis, Massachusetts Institute of Technology
+(2021).
+71. J. Tucker, D. Liu, A. Swann, A. Ren, J. Yu, J. Sun, B. Kim, L. McGranahan, Q. Vuong,
+M. Schwager,π, But Make It Fly: Physics-Guided Transfer of VLA Models to Aerial Manip-
+ulation.arXiv preprint arXiv:2603.25038(2026).
+72. G. Loianno, M. Watterson, V . Kumar, Visual inertial odometry for quadrotors on SE (3), in
+2016 IEEE International Conference on Robotics and Automation (ICRA)(IEEE) (2016), pp.
+1544–1551.
+73. Introduction to Intel® RealSense™ Visual SLAM and the T265
+Tracking Camera,https://dev.realsenseai.com/docs/
+intel-realsensetm-visual-slam-and-the-t265-tracking-camera,
+accessed: 2026-03-27.
+Acknowledgments
+The authors thank the original team members Daniel Bernstein, Yanyu Chen, Laasya Chukka, and
+Monica Khalique, who contributed to the early development of the vehicle platform alongside
+A.Z. A video of the early prototype from 2022 is available athttps://www.youtube.com/
+watch?v=wFEDdiamtT8. The project website, including supplementary videos and additional
+materials, is available athttps://iral-morphable.github.io/.
+Funding:This work was supported by the Michigan Translational Research and Commercial-
+ization (MTRAC) Advanced Transportation Innovation Hub, Mid-Stage Funding Program.
+Author contributions:J.D.P.G.P. led the software development, including the control architec-
+ture, thrust allocation, firmware, and simulation, and conducted all experiments and data analysis.
+J.X. led the manuscript writing, visualization, and multimedia presentation, conducted all experi-
+ments, designed the thrust allocation strategy, and contributed to the controller design and augmen-
+47
+PAGE 48
+tation. A.Z. led the complete electromechanical design and fabrication of the novel quadrotor from
+system conception to implementation and flight, and supported the integration of the controller
+and firmware. H.Z. contributed to system design, visual-inertial odometry, controller design, and
+stability proof of the geometric controller. A.N. contributed to the original thrust allocation. A.S.
+and S.S. led initial firmware and simulation development. A.M.R. designed experimental end-
+effectors and assisted with vehicle assembly. Y .B. contributed to the early vehicle design. V .T. led
+the project. All authors reviewed and edited the manuscript.
+Competing interests:The hardware design is the subject of pending U.S. patent application
+No. 63/703,312 (filed October 2024). The authors declare that they have no competing interests.
+48
+PAGE 49
+Supplementary Materials
+Matrix Elements
+Gi(αi, βi)is thei-th column ofG, which is obtained by expanding the forward mapping from the
+rotor force to the body-frame force,
+f=
+4X
+i=1
+RPi(αi, βi)
+ 
+ctΩ2
+i
+
+kPi
+=
+4X
+i=1
+Rj(αi)Ri(βi)
+ 
+ctΩ2
+i
+
+kPi
+=
+4X
+i=1
+ 
+ctΩ2
+i
+
+
+
+cosα i 0 sinα i
+0 1 0
+−sinα i 0 cosα i
+
+
+
+
+1 0 0
+0 cosβ i −sinβ i
+0 sinβ i cosβ i
+
+
+
+
+0
+0
+1
+
+
+=c t
+
+
+sα1cβ1 sα2cβ2 sα3cβ3 sα4cβ4
+−sβ1 −sβ2 −sβ3 −sβ4
+cα1cβ1 cα2cβ2 cα3cβ3 cα4cβ4
+
+
+
+
+Ω2
+1
+Ω2
+2
+Ω2
+3
+Ω2
+4
+
+
+,
+=c tGΩ◦2.
+(20)
+τ=
+4X
+i=1
+li ×t i,
+=
+4X
+i=1
+(ctΩ2
+i )
+
+
+li,x
+li,y
+li,z
+
+ ×
+
+
+cαi sαisβi sαicβi
+0cβ i −sβi
+−sαi cαisβi cαicβi
+
+
+
+
+0
+0
+1
+
+ ,
+=
+4X
+i=1
+ 
+ctΩ2
+i
+
+
+
+li,y cosα i cosβ i +l i,z sinβ i
+−li,x cosα i cosβ i +l i,z sinα i cosβ i
+−li,x sinβ i −l i,y sinα i cosβ i
+
+
+=c tHΩ ◦2,
+(21)
+49
+PAGE 50
+whereH ⊤ =
+
+
+l1,ycα1cβ1 +l 1,zsβ1 −l1,xcα1cβ1 +l 1,zsα1cβ1 −l1,xsβ1 −l 1,ysα1cβ1
+l2,ycα2cβ2 +l 2,zsβ2 −l2,xcα2cβ2 +l 2,zsα2cβ2 −l2,xsβ2 −l 2,ysα2cβ2
+l3,ycα3cβ3 +l 3,zsβ3 −l3,xcα3cβ3 +l 3,zsα3cβ3 −l3,xsβ3 −l 3,ysα3cβ3
+l4,ycα4cβ4 +l 4,zsβ4 −l4,xcα4cβ4 +l 4,zsα4cβ4 −l4,xsβ4 −l 4,ysα4cβ4
+
+
+.
+N ⊤
+M =
+
+
+0 0−1 0 0 1 0 0−1 0 0 1
+− l
+b −1 0 l
+b 0 0 0 0 0 0 1 0
+−1 0 0 0 0 0 0 0 0 1 0 0
+− l
+b −1 0 l
+b 0 0 0 1 0 0 0 0
+0 0 0−1 0 0 1 0 0 0 0 0
+0−1 0 0−1 0 0 0 0 0 0 0
+
+
+.(22)
+Proof of Reachability and Controllability
+While this can be intuitively understood based on design, we formally prove that the system is
+controllable, with respect to force and torque produced. By this virtue, we claim in the theorem
+below that the system is reachable as well. This applies to all position and orientation states and
+their derivatives. To prove the reachability, we present a corollary which states that all forces and
+torques (withinreasonablemagnitude) can be achieved, proving the controllability argument.
+Theorem 1(Reachability).Given the drone dynamics(1)and(4), force and torque relations(8)
+and sufficient limits on rotor velocities, all the states[p ⊤ v⊤ R⊤ ω⊤]⊤ (position, linear velocity,
+rotation matrix, angular velocity) are reachable.
+Proof.By design, thrust vector byi th rotor,t i is given by
+ti =c tΩ2
+i
+
+
+sinα i cosβ i
+−sinβ i
+cosα i cosβ i
+
+ ,(23)
+whereα i andβ i are the servo motor angles,Ωi is the angular velocity ofith rotor andc t is the thrust
+coefficient. Based on relation (23), we can always find a solution(αi, βi,Ω i)for any givent i, using
+sine and cosine inverses. In other words, any vectort i can be achieved; hence, we consider the
+combined thrust vectort= [t ⊤
+1 t⊤
+2 t⊤
+3 t⊤
+4 ]⊤, as a high-level control input.
+50
+PAGE 51
+Note:Only the magnitude oft i has an upper limit, solely based on the maximum possible
+angular speed of propellerΩ i. Any direction, based on servo anglesα i andβ i, can be commanded.
+The forces and torques on the drone due to each of the propeller thrusts are given by
+
+f
+τ
+
+ =
+
+
+P4
+i=1 ti
+P4
+i=1 li ×t i
+
+ =
+
+ I I I I
+l1×l 2×l 3×l 4×
+
+
+
+
+t1
+t2
+t3
+t4
+
+
+=M
+
+
+t1
+t2
+t3
+t4
+
+
+,(24)
+whereM=
+
+
+1 0 0 1 0 0 1 0 0 1 0 0
+0 1 0 0 1 0 0 1 0 0 1 0
+0 0 1 0 0 1 0 0 1 0 0 1
+0 0b0 0−b0 0−b0 0b
+0 0−l0 0−l0 0l0 0l
+−b l0b l0b−l0−b−l0
+
+
+, andlandbare the half-length and
+half-breadth of the drone, respectively, as shown in Equation (15). The linear mapping matrix
+M:t→(f,τ)is an underdetermined system sinceMis a6×12matrix with rank 6, which
+means that the columns ofMspan the vector spaceR 6. Thus, this system of equations has infinite
+solutions. Since we always have a solution, we prove that any force/torque is achievable. Given
+the dynamics in eqs. (1) and (4),i.e.,
+˙p=v, m ˙v=mg+Rf,
+˙R=R[ω] ×,J ˙ω=−ω×J ω+τ,
+and that the maximum limit onΩ i is reasonable, so that the force/torque are always enough to
+counter gravitygand gyroscopic moments−ω×J ω, we prove that all states arereachable.
+Corollary 1(Controllability).Since the solution for linear mapMalways exists, we can always
+find a set of thrust vectorst i, such that a desired force and torque is applied. Mathematically,
+given vectorsfandτ, there existst= [t ⊤
+1 t⊤
+2 t⊤
+3 t⊤
+4 ]⊤, such thatf= P4
+i=1 ti,τ= P4
+i=1 li ×t i.
+Hence, the system is controllable as all force and torque realizations are possible.
+51
+PAGE 52
+Proof of Stability
+Using the controller defined in (11), the corresponding closed loop error dynamics is
+˙ep =e v (25)
+˙ev = 1
+m (−kpep −k vev)(26)
+˙eR = 1
+2
+ 
+tr
+ 
+R⊤Rd
+
+I−R ⊤Rd
+
+eω (27)
+˙eω =J −1 (−kReR −k ωeω)(28)
+The error state(e p, ev, eR, eω) = (0,0,0,0)is an exponentially stable equilibrium of the closed
+loop dynamics. We define the regions of attraction in the following proposition.
+Proposition 1(Exponential Stability).Consider the controller defined in(11). Suppose that the
+initial conditions satisfy
+Ψ (R(0),R d(0))<2,
+∥eω(0)∥2 < 2kR
+λmax(J) (2−Ψ (R(0),R d(0))),
+(29)
+where a real-valued error functionΨ(·,·) :SO(3)×SO(3)→Ris defined asΨ (R,R d)≜
+1
+2 tr
+ 
+I−R ⊤
+d R
+
+. Then, the zero equilibrium of the closed-loop tracking error(e p, ev, eR, eω) =
+(0,0,0,0)is exponentially stable.
+We define the Lyapunov Candidate for the attitude dynamics. Let a Lyapunov candidateV2 be
+V2 = 1
+2 e⊤
+ωJ eω +k RΨ (R,R d) +c 2e⊤
+Reω,(30)
+wherec 2 is a non-negative constant. Suppose the initial condition in eq. (29) is satisfied, it follows
+directly (63, Proposition 1) that
+z⊤
+2 M21z2 ≤ V 2 ≤z ⊤
+2 M22z2 (31)
+˙V2 ≤ −z ⊤
+2 W2z2 (32)
+52
+PAGE 53
+wherez 2 =
+
+ ∥eR∥
+∥eω∥
+
+,M 21 = 1
+2
+
+ kR −c2
+−c2 λmin(J)
+
+,M 22 = 1
+2
+
+
+2kR
+2−ψ2
+c2
+c2 λmax(J)
+
+,ψ 2 =
+1
+kR
+V2|t=0,c2=0, andW 2 =
+
+
+c2kR
+λmax(J) − c2kω
+2λmin(J)
+− c2kω
+2λmin(J) kω −c 2
+
+.
+The matricesW 2,M 21, andM 22 are positive-definite by choosingc 2 such that
+c2 <min
+
+kω, 4kωkRλmin(J) 2
+k2
+ωλmax(J) + 4kRλmin(J) 2 ,
+p
+kRλmin(J)
+
+(33)
+For translation dynamics, let a Lyapunov candidateV 1 be
+V1 = 1
+2 kp ∥ep∥2 + 1
+2 m∥e v∥2 +c 1e⊤
+p ev (34)
+wherec 1 is a positive constant. Clearly, we have
+z⊤
+1 M11z1 ≤ V 1 ≤z ⊤
+1 M12z1 (35)
+wherez 1 =
+
+ ∥ep∥
+∥ev∥
+
+,M 11 = 1
+2
+
+ kp −c1
+−c1 m
+
+, andM 12 = 1
+2
+
+ kp c1
+c1 m
+
+.
+The derivative ofV 1 is given by
+˙V1 =kpe⊤
+p ev +e ⊤
+v (−kpep −k vev) +c 1e⊤
+v ev + c1
+m e⊤
+p (−kpep −k vev)
+=−(k v −c 1)∥e v∥2 − c1kp
+m ∥ep∥2 − c1kv
+m e⊤
+p ev
+≤ −z ⊤
+1 W1z1
+(36)
+whereW 1 =
+
+ kv −c 1 − c1kv
+2m
+− c1kv
+2m
+c1kp
+m
+
+. The matricesW 1,M 11, andM 12 are positive-definite by choos-
+ing a positive constantc 1 such that
+c1 <min
+ 4mkpkv
+4kp +k 2
+v
+,
+p
+mkp
+
+.(37)
+Now letV=V 1 +V 2 be the Lyapunov candidate of the complete system,
+V= 1
+2 kp ∥ep∥2 + 1
+2 m∥e v∥2 +c 1e⊤
+p ev + 1
+2 e⊤
+ωJ eω +k RΨ (R,R d) +c 2e⊤
+Reω (38)
+The bound of the Lyapunov candidateVcan be written as
+zT
+1 M11z1 +z T
+2 M21z2 ≤ V ≤z T
+1 M12z1 +z T
+2 M22z2.(39)
+53
+PAGE 54
+The time derivative ofVis given by
+˙V ≤ −z T
+1 W1z1 −z T
+2 W2z2.(40)
+By choosingc 1 andc 2 such that eqs. (33) and (37) are satisfied, we obtain thatVis positive
+definite, and ˙Vis negative definite. Therefore, we conclude that the zero equilibrium of the tracking
+errors of the complete dynamics is exponentially stable.
+We obtain exponential stability of the generalized geometric controller for almost every pair
+of(R(0),R d(0)).Specifically, Proposition 1 holds forΨ (R(0),R d(0))<2, which indicates
+the initial attitude error betweenR(0)andR d(0)should be less than180 ◦. In other words, we
+prove that the closed-loop controller is exponentially stable inalmostthe entireSO(3). This result
+improves the exponential stability of the geometric controller of a regular quadrotor, which requires
+the initial attitude error betweenR(0)andR d(0)to be less than90 ◦ (63).
+Proof of Thrust Distribution Optimality
+Theorem 2(Optimality).The Thrust Distribution given by(15)is the optimal solution with respect
+to the cost function
+E(t) = 1
+2
+4X
+i=1
+||ti||2
+2.(41)
+Proof.The constraints for the problem are given byf= P4
+i=1 ti andτ= P4
+i=1 li ×t i. The
+Lagrangian for the constrained optimization problem is given by
+L(t) = 1
+2
+4X
+i=1
+||ti||2
+2 +λ ⊺
+ 
+f−
+4X
+i=1
+ti
+!
++µ ⊺
+ 
+τ−
+4X
+i=1
+li ×t i
+!
+.(42)
+The gradient of Lagrangian is∇L=
+
+∂L
+∂t1
+⊤ 
+∂L
+∂t2
+⊤ 
+∂L
+∂t3
+⊤ 
+∂L
+∂t4
+⊤
+⊤
+. Without loss of
+generality, we expand ∂L
+∂t1
+using appropriate values forr i, and equating it with0, we get
+∂L
+∂t1
+=
+
+
+∂L/∂t 1x
+∂L/∂t 1y
+∂L/∂t 1z
+
+ =
+
+
+t1x −λ 1 −µ 3(−b)
+t1y −λ 2 −µ 3(l)
+t1z −λ 3 −(µ 1b−µ 2l),
+
+ = 0.
+54
+PAGE 55
+Equivalently, we have
+t1 =λ+
+
+
+0 0−b
+0 0l
+b−l0
+
+ µ.
+Similarly, solving further for all ∂L
+∂t2
+= 0, ∂L
+∂t3
+= 0, ∂L
+∂t4
+= 0, and constraintsf= P4
+i=1 ti and
+τ= P4
+i=1 li ×t i, the solution for multipliersλandµis
+λ= f
+4 , µ=
+
+
+τx/4b2
+τy/4l2
+τz/4r2
+
+ .(43)
+Substituting these in the solutions fort i, we get
+t1 =f/4 +
+
+
+0 0−b/r 2
+0 0l/r 2
+1/b−1/l0
+
+ τ/4,t 2 =f/4 +
+
+
+0 0b/r 2
+0 0l/r 2
+−1/b−1/l0
+
+ τ/4
+t3 =f/4 +
+
+
+0 0b/r 2
+0 0−l/r 2
+−1/b1/l0
+
+ τ/4,t 4 =f/4 +
+
+
+0 0−b/r 2
+0 0−l/r 2
+1/b1/l0
+
+ τ/4.
+This is the same as the solutions proposed in the inverse mapping equations (15).
+Equivalently, we can use the linear mapM:t→(f,τ)to find the solution. Since we already
+proved that this is an underdetermined system with infinite solutions, we can use pseudo-inverse
+M † =M ⊤ 
+M M⊤−1
+to find the suitablet i values,i.e.,
+t=M †
+h
+f ⊤ τ ⊤
+i⊤
+.(44)
+The pseudo-inverse gives a minimum norm-squared solution among the infinite solutions,i.e.,
+min 1
+2 ||t||2
+2, which is same as cost function,E(t). The further expansion of the expression (44)
+gives the same solution as the proposed inverse mapping.
+55
